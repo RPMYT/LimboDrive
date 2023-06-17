@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class PB3K {
     static final Logger LOGGER = LogManager.getLogger("Pixel Blaster 3000");
@@ -76,7 +77,7 @@ public class PB3K {
     }
 
     static final HashMap<InputType, ArrayList<InputCallback>> INPUT = new HashMap<>();
-    static final HashMap<RenderStage, ArrayList<RenderCallback>> RENDER = new HashMap<>();
+    static final LinkedHashMap<RenderStage, ArrayList<RenderCallback>> RENDER = new LinkedHashMap<>();
 
     public enum RenderStage {
         SETUP,

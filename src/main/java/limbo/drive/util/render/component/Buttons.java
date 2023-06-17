@@ -34,8 +34,8 @@ public class Buttons {
             ScreenDrawing.drawString(
                 context,
                 button.text.asOrderedText(),
-                posX + button.x + 4,
-                posY + button.y + (button.height / 2),
+                posX + button.x + 5,
+                posY + button.y + (button.height / 4) + 4,
                 button.textColor == null ? 0xFF_FFFFFF : button.textColor
             );
         }

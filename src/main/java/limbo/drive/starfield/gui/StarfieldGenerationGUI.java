@@ -19,7 +19,7 @@ public final class StarfieldGenerationGUI {
 
         PB3K.registerRenderHandler(PB3K.RenderStage.BACKGROUND, (context, stage, display, posX, posY, mouseX, mouseY) -> {
             if (display.identifier != null && display.identifier.toString().equals("limbodrive:starmap")) {
-                ScreenDrawing.coloredRect(context, posX, posY, display.getWidth(), display.getHeight(), 0xFF_FF00FF);
+//                ScreenDrawing.coloredRect(context, posX, posY, display.getWidth(), display.getHeight(), 0xFF_FF00FF);
             }
         });
 
