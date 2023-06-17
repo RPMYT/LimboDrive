@@ -7,10 +7,10 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 
 public final class Display extends WPanel {
-    private final Identifier which;
+    public final Identifier identifier;
 
-    public Display(Identifier which) {
-        this.which = which;
+    public Display(Identifier identifier) {
+        this.identifier = identifier;
     }
 
     private boolean completedSetup = false;
@@ -19,12 +19,11 @@ public final class Display extends WPanel {
     public void validate(GuiDescription c) {
         completedSetup = false;
         super.validate(c);
-        System.out.println(this.which);
+        PB3K.LOGGER.debug("Opening display '" + (this.identifier == null ? "Null display?!" : this.identifier) + "'.");
         PB3K.RENDER.get(PB3K.RenderStage.SETUP).forEach(renderer -> renderer.render(
             null,
             PB3K.RenderStage.SETUP,
             this,
-            this.which,
             0,
             0,
             0,
@@ -37,7 +36,7 @@ public final class Display extends WPanel {
     public void paint(DrawContext context, int x, int y, int mouseX, int mouseY) {
         PB3K.RENDER.forEach((stage, renderers) -> {
             if (stage != PB3K.RenderStage.SETUP) {
-                renderers.forEach(renderer -> renderer.render(context, stage, this, this.which, x, y, mouseX, mouseY));
+                renderers.forEach(renderer -> renderer.render(context, stage, this, x, y, mouseX, mouseY));
             }
         });
     }
@@ -47,7 +46,7 @@ public final class Display extends WPanel {
         PB3K.INPUT.get(PB3K.InputType.MOUSE).forEach(handler -> {
             handler.process(new PB3K.InputData(
                 PB3K.InputType.MOUSE,
-                this.which,
+                this.identifier,
                 x,
                 y,
                 button,

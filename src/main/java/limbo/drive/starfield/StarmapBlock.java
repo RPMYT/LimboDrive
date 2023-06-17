@@ -76,7 +76,8 @@ public class StarmapBlock extends BlockWithEntity {
         @Nullable
         @Override
         public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-            return new PB3K.RenderTarget(syncId, playerInventory, new Identifier("limbodrive" , "starmap"));
+            PB3K.RenderTarget.initialize(new Identifier("limbodrive" , "starmap"));
+            return new PB3K.RenderTarget(syncId, playerInventory);
 //            return new StarmapGUI.Description(syncId, playerInventory, ScreenHandlerContext.create(this.world, this.pos));
         }
     }
