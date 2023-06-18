@@ -1,6 +1,11 @@
-package limbo.drive.util.render;
+package limbo.drive.util.render.core;
 
+import com.google.common.collect.Lists;
 import io.github.cottonmc.cotton.gui.SyncedGuiDescription;
+import limbo.drive.util.render.gui.BackgroundType;
+import limbo.drive.util.render.gui.BorderType;
+import limbo.drive.util.render.gui.DisplayProperties;
+import limbo.drive.util.render.gui.GuiBase;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,18 +19,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-
 public class PB3K {
-    static final Logger LOGGER = LogManager.getLogger("Pixel Blaster 3000");
+    public static final Logger LOGGER = LogManager.getLogger("Pixel Blaster 3000");
 
     private static ScreenHandlerType<RenderTarget> HANDLER;
 
     public static void initialize() {
         LOGGER.info("Initializing display...");
-        HandledScreens.<RenderTarget, Screen>register(HANDLER, (handler, playerInventory, title) -> new Screen(handler, playerInventory));
+        HandledScreens.<PB3K.RenderTarget, Screen>register(HANDLER, (handler, playerInventory, title) -> new Screen(handler, playerInventory));
     }
 
     public static void setup() {
@@ -39,29 +40,48 @@ public class PB3K {
             new ScreenHandlerType<>(RenderTarget::new,
                 FeatureFlags.VANILLA_FEATURES)
         );
-
-        RENDER.put(RenderStage.SETUP, new ArrayList<>());
-        RENDER.put(RenderStage.BACKGROUND, new ArrayList<>());
-        RENDER.put(RenderStage.TEXTURES, new ArrayList<>());
-        RENDER.put(RenderStage.CONTROLS, new ArrayList<>());
-        RENDER.put(RenderStage.STRINGS, new ArrayList<>());
-        RENDER.put(RenderStage.EFFECTS, new ArrayList<>());
     }
 
     public static class RenderTarget extends SyncedGuiDescription {
-        private static Identifier TARGET = new Identifier(
-            "limbodrive",
-            "error"
-        );
+        private static final GuiBase ERROR = new GuiBase(
+            new DisplayProperties(
+                BackgroundType.TEXTURED,
+                BorderType.NONE,
+                new Identifier(
+                    "limbodrive",
+                    "error"
+                ),
+                410,
+                225,
+                null,
+                null,
+                null,
+                new Identifier(
+                    "limbodrive",
+                    "textures/gui/error.png"
+                )
+            ),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList()
+        ) {};
 
-        public static void initialize(Identifier target) {
-            TARGET = target;
+        private static GuiBase TARGET_GUI = ERROR;
+
+        public static void initialize(GuiBase gui) {
+            TARGET_GUI = gui;
         }
 
         public RenderTarget(int syncId, PlayerInventory playerInventory) {
             super(HANDLER, syncId, playerInventory);
 
-            Display display = new Display(TARGET);
+            Display display = new Display(TARGET_GUI);
             this.setRootPanel(display);
             display.validate(this);
         }
@@ -69,15 +89,9 @@ public class PB3K {
         @Override
         public void onClosed(PlayerEntity player) {
             super.onClosed(player);
-            TARGET = new Identifier(
-                "limbodrive",
-                "error"
-            );
+            TARGET_GUI = ERROR;
         }
     }
-
-    static final HashMap<InputType, ArrayList<InputCallback>> INPUT = new HashMap<>();
-    static final LinkedHashMap<RenderStage, ArrayList<RenderCallback>> RENDER = new LinkedHashMap<>();
 
     public enum RenderStage {
         SETUP,
@@ -91,13 +105,6 @@ public class PB3K {
     @FunctionalInterface
     public interface RenderCallback {
         void render(DrawContext context, RenderStage stage, Display display, int posX, int posY, int mouseX, int mouseY);
-    }
-
-    public static void registerRenderHandler(RenderStage stage, RenderCallback handler) {
-        ArrayList<RenderCallback> handlers = RENDER.get(stage);
-        handlers.add(handler);
-
-        RENDER.put(stage, handlers);
     }
 
     public enum InputType {
@@ -120,12 +127,5 @@ public class PB3K {
     @FunctionalInterface
     public interface InputCallback {
         void process(InputData data);
-    }
-
-    public static void registerInputHandler(InputType type, InputCallback handler) {
-        ArrayList<InputCallback> handlers = INPUT.getOrDefault(type, new ArrayList<>());
-        handlers.add(handler);
-
-        INPUT.put(type, handlers);
     }
 }

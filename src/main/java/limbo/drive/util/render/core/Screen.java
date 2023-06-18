@@ -1,4 +1,4 @@
-package limbo.drive.util.render;
+package limbo.drive.util.render.core;
 
 import io.github.cottonmc.cotton.gui.client.CottonInventoryScreen;
 import net.minecraft.entity.player.PlayerInventory;

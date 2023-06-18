@@ -4,15 +4,13 @@ import limbo.drive.starfield.StarfieldGenerator;
 import limbo.drive.starfield.StarmapBlock;
 import limbo.drive.starfield.StarmapGUI;
 import limbo.drive.starfield.data.Star;
-import limbo.drive.starfield.gui.StarfieldGenerationGUI;
-import limbo.drive.util.render.PB3K;
+import limbo.drive.util.render.core.PB3K;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIo;
@@ -63,7 +61,6 @@ public class LimboDrive {
 			BlockEntities.init();
 
 			PB3K.setup();
-			StarfieldGenerationGUI.init();
 		}
 
 		private void initData() {
@@ -98,7 +95,6 @@ public class LimboDrive {
 
 						exception.printStackTrace();
 					}
-					return;
 				} else {
 					try {
 						NbtCompound read = NbtIo.readCompressed(root);
