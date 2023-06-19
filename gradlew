@@ -62,6 +62,10 @@
 #
 ##############################################################################
 
+if [[ -d /usr/lib/jvm/java-17-openjdk/ ]]; then
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk/;
+fi
+
 # Attempt to set APP_HOME
 
 # Resolve links: $0 may be a link

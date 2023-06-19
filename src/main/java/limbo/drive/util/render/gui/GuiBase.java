@@ -47,7 +47,15 @@ public abstract class GuiBase {
 
     public void render(DrawContext context, PB3K.RenderStage stage, Display display, int posX, int posY, int mouseX, int mouseY) {
         __RenderSetup(context, stage, display, posX, posY);
-        this.RENDERERS.get(stage).forEach(renderer -> renderer.render(context, stage, display, posX, posY, mouseX, mouseY));
+        this.RENDERERS.get(stage).forEach(renderer -> renderer.render(
+                context,
+                stage,
+                display,
+                posX,
+                posY,
+                mouseX,
+                mouseY
+        ));
     }
 
     @SuppressWarnings("DataFlowIssue")

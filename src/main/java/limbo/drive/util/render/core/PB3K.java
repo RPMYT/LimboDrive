@@ -50,7 +50,7 @@ public class PB3K {
                 new Identifier(
                     "limbodrive",
                     "error"
-                ),
+                ), // TODO: this needs to be a not-super-huge texture.
                 410,
                 225,
                 null,
@@ -61,6 +61,7 @@ public class PB3K {
                     "textures/gui/error.png"
                 )
             ),
+
             Lists.newArrayList(),
             Lists.newArrayList(),
             Lists.newArrayList(),
@@ -75,7 +76,7 @@ public class PB3K {
         private static GuiBase TARGET_GUI = ERROR;
 
         public static void initialize(GuiBase gui) {
-            TARGET_GUI = gui;
+            //TARGET_GUI = gui;
         }
 
         public RenderTarget(int syncId, PlayerInventory playerInventory) {
