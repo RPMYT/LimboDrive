@@ -55,7 +55,7 @@ public enum WeaponClass {
     ;
 
     public final WeaponType type;
-    public final ArrayList<WeaponRange> range;
+    public final List<WeaponRange> range;
     public final DamageType damage;
     public final double worth;
     public final double weight;
@@ -80,6 +80,6 @@ public enum WeaponClass {
         this.weight = weight;
         this.damage = damage;
         this.dualwieldable = dualwieldable;
-        this.range = new ArrayList<>(List.of(range));
+        this.range = List.of(range);
     }
 }
