@@ -3,7 +3,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class TextParsingException extends RuntimeException {
@@ -14,11 +13,23 @@ class TextParsingException extends RuntimeException {
 
 record Block(String label, ArrayList<int[]> contents) {}
 
-class Testbed {
-    public static Map<String, Function<String, String>> commands = new HashMap<>();
+@SuppressWarnings("unused")
+enum ParamType {
+    BYTE,
+    SHORT,
+    LONG
+}
 
-    public static Map<Integer, Block> blocks = new LinkedHashMap<>();
-    public static Map<String, Integer> addresses = new LinkedHashMap<>();
+record Command(String name, String regex, char terminator, Function<String, String> parser, ParamType... parameters) {}
+
+@SuppressWarnings("unused")
+class Testbed {
+    public static Map<String, Command> COMMANDS = new HashMap<>();
+
+    public static Map<Integer, Block> BLOCK_DATABASE = new LinkedHashMap<>();
+    public static Map<String, Integer> ADDRESS_MAPPINGS = new LinkedHashMap<>();
+
+    public static final int MAX_LABEL_LENGTH = 20;
 
     public static int[] textToBytes(String text, int max) {
         int[] bytes = new int[max];
@@ -57,25 +68,6 @@ class Testbed {
                     continue;
                 }
 
-//                for (int ignored = 2; ignored < matchingPos; ignored+=2) {
-//                    if (pos+2 >= text.length()) {
-//                        break;
-//                    }
-//
-//                    String sub = text.substring(pos, pos+2);
-//                    if (sub.endsWith("]")) {
-//                        sub = text.substring(pos, (pos+1));
-//                    }
-//
-//                    if (sub.startsWith("[")) {
-//                        sub = text.substring(pos+1, (pos + 3));
-//                    }
-//
-//                    if (sub.charAt(sub.length()-2) == ']') {
-//                        break;
-//                    }
-//                }
-
                 pos = matchingPos;
             } else {
                 //System.out.println("Character (During Parse): " + (int) there + ", Value (During Parse): " + there);
@@ -89,13 +81,14 @@ class Testbed {
         return (pos < max ? Arrays.copyOf(bytes, pos) : bytes);
     }
 
-    public static int[][] compileBlock(String block) {
+    public static int[] compileBlock(String block) {
         Stream<String> lines = block.lines();
         AtomicReference<Block> current = new AtomicReference<>(null);
         AtomicReference<Block> previous = new AtomicReference<>(null);
 
+        ArrayList<Integer> compiled = new ArrayList<>();
+
         int count = (int) block.lines().count();
-        int[][] texts = new int[count][];
 
         AtomicInteger pos = new AtomicInteger();
         AtomicInteger addr = new AtomicInteger(0xC00000);
@@ -108,13 +101,13 @@ class Testbed {
                         curAddr += content.length-1;
                     }
 
-                    blocks.put(curAddr + 1, previous.get());
+                    BLOCK_DATABASE.put(curAddr + 1, previous.get());
                     addr.set(curAddr + 1);
-                    addresses.put(current.get().label(), curAddr);
+                    ADDRESS_MAPPINGS.put(current.get().label(), curAddr+1);
                 }
 
                 current.set(new Block(
-                        line.replace(":", ""),
+                        line.replace(":", "").substring(0, (Math.min(line.length() - 1, MAX_LABEL_LENGTH))),
                         new ArrayList<>()
                 ));
                 previous.set(current.get());
@@ -123,29 +116,37 @@ class Testbed {
                         line.replace("\"", ""),
                         line.length() - 1
                 );
-                //System.out.print("\n");
-                texts[pos.get()] = parsed;
-                for (int intgr : parsed) {
-                    //System.out.println("Character (After Parse): " + (char) intgr + ", Value (After Parse): " + intgr);
+
+                for (int piece : parsed) {
+                    compiled.add(piece);
                 }
 
-                Block curr = current.get();
-                curr.contents().add(parsed);
-                current.set(curr);
+                if (current.get() != null) {
+                    Block curr = current.get();
+                    curr.contents().add(parsed);
+                    current.set(curr);
+                }
             }
             pos.getAndIncrement();
 
             if (pos.get() == count) {
                 int curAddr = addr.get();
-                for (int[] content : previous.get().contents()) {
-                    curAddr += content.length-1;
-                }
+                if (previous.get() != null) {
+                    for (int[] content : previous.get().contents()) {
+                        curAddr += content.length - 1;
+                    }
 
-                blocks.put(curAddr, current.get());
-                addresses.put(current.get().label(), curAddr);
+                    BLOCK_DATABASE.put(curAddr, current.get());
+                    ADDRESS_MAPPINGS.put(current.get().label(), curAddr);
+                }
             }
         });
-        return texts;
+
+        int[] toReturn = new int[compiled.size()];
+        for (int index = 0; index < compiled.size(); index++) {
+            toReturn[index] = compiled.get(index);
+        }
+        return toReturn;
     }
 
     public static void parseBlock(int[] text) throws IOException {
@@ -179,6 +180,7 @@ class Testbed {
                     parsedLong = (longComponents[2] & 0xFF) | ((longComponents[1] & 0xFF) << 8) | ((longComponents[0] & 0x0F) << 16);
                     //System.out.println("Parsed: 0x" + Integer.toHexString(parsedLong));
                     parsingLong = false;
+                    parsingStage = 0;
                     continue;
                 }
                 parsingStage++;
@@ -186,7 +188,7 @@ class Testbed {
             }
 
             switch (there) {
-                case 0, 1 -> System.out.print("\n");
+                case 1 -> System.out.print("\n");
                 case 2 -> finished = true;
                 case 3 -> {
                     System.out.print(" ▼");
@@ -194,10 +196,7 @@ class Testbed {
                     System.out.print("\n");
                 }
 
-                case 0x13 -> {
-                    System.in.read();
-                    System.out.print("\n");
-                }
+                case 0x13 -> System.in.read();
 
                 case 0x14 -> {
                     System.out.print(" ▼");
@@ -224,7 +223,8 @@ class Testbed {
 
             if (jumping) {
                 if (parsedLong != 0) {
-                    ArrayList<int[]> contents = blocks.get(parsedLong + 0xC00000).contents();
+                    //System.out.println(Integer.toHexString(parsedLong + 0xC00000));
+                    ArrayList<int[]> contents = BLOCK_DATABASE.get(parsedLong + 0xC00000).contents();
                     //System.out.println("Jumping!");
                     for (int[] content : contents) {
                         parseBlock(content);
@@ -236,58 +236,111 @@ class Testbed {
             }
         }
     }
+    public static String preparse(String script) {
+        int pos = 0;
 
-    public static String parseCommand(String input) {
-        String target = input;
-        for (String key : commands.keySet()
-                .stream()
-                .filter(input::matches)
-                .collect(Collectors.toSet())
-        ) {
-            if (input.matches(key)) {
-                String parsed = commands.getOrDefault(key, s -> input).apply(input);
-                if (!Objects.equals(parsed, input)) {
-                    target = parsed;
+        StringBuilder parsed = new StringBuilder();
+        while (pos < script.length()) {
+            for (Map.Entry<String, Command> entry : COMMANDS.entrySet()) {
+                Command command = entry.getValue();
+
+                if (pos >= script.length()) {
+                    break;
+                }
+
+                //System.out.println("Sub: " + script.substring(pos, pos + Math.min(script.length()-1, command.name().length())) + ", Name: " + command.name() + ", Matches: " + script.substring(pos, pos + Math.min(script.length()-1, command.name().length())).matches(command.name()));
+
+                if (script.substring(pos, pos + Math.min(script.length()-1, command.name().length())).matches(command.name())) {
+                    //System.out.println("Match found");
+                    int length = command.name().length();
+                    for (int step = pos; step < script.length(); step += length) {
+                        //System.out.println("Step: " + step + ", Pos: " + pos);
+                        try {
+                            int seek = pos;
+
+                            try {
+                                while (script.charAt(seek) != command.terminator()) {
+                                    seek++;
+                                }
+
+                                String part = script.substring(pos, seek).strip();
+                                String replaced = command.parser().apply(part);
+                                parsed.append(replaced);
+
+                                pos += (seek - pos) + 1;
+                                break;
+                            } catch (StringIndexOutOfBoundsException exception) {
+                                exception.printStackTrace();
+                                throw new TextParsingException("Could not find command terminator!");
+                            }
+                        } catch (StringIndexOutOfBoundsException ignored) {}
+                    }
                 }
             }
+
+            parsed.append(script, Math.min(pos, script.length()-1), Math.min(script.length()-1, pos + 1));
+            pos++;
         }
-        return target;
+
+        return parsed.toString();
+    }
+
+    public static void addCommand(String command, String regex, Function<String, String> parser, String code, ParamType... parameters) {
+        COMMANDS.put(command, new Command(
+            command,
+            regex == null ? command : regex,
+            parameters.length == 0 ? command.charAt(command.length()-1) : ')',
+            parser == null ? input -> code : parser
+        ));
     }
 
     public static void main(String[] args) throws IOException {
-        compileBlock("pie:\nHello; have we met?[13 02]\nYou wanna pie?[03]\nlame:\nThis bakery is so lame.[03]\nnpc:\nHello there![01]\nI am an NPC![03]\nThis text is[14][12]gone![02]\njumps:\ncall(pie)\ncall(lame)\ngoto(npc)");
-        //System.out.print("\n");
-        blocks.forEach((addr, block) -> {
-            System.out.println("Have block '" + block.label() + "' at address 0x" + Integer.toHexString(addr));
-            for (int[] content : block.contents()) {
-                for (int intgr : content) {
-                    //System.out.print((char) intgr);
-                }
-            }
-        });
+        compileBlock(preparse("pie:\nHello; have we met? next \nYou wanna pie? end \nlame:\nThis bakery is so lame. end\nnpc:\nHello there!\nI am an NPC! next\nThis text is wait[12]gone! end\n"));
 
-        System.out.print(parseCommand("goto(pie)"));
+        String preparsed = preparse("Time to jump! call(pie) goto(npc)");
+        int[] compiled = compileBlock(preparsed);
+        parseBlock(compiled);
+
         //parseBlock(textToBytes("[0A 00 00 9C]", 256));
     }
 
     static {
-        commands.put("end", s -> "[13 02]");
-        commands.put("wait", s-> "[13]");
-        commands.put("next", s -> "[03 00]");
-        commands.put("goto\\(.*\\)", s -> {
+        addCommand("end", null, null, "[13 02]");
+        addCommand("wait", null, null, "[13]");
+        addCommand("next", null, null, "[03 01]");
+
+        addCommand("goto", ".{1," + MAX_LABEL_LENGTH + "}", s -> {
             String label = s
-                    .replace("goto", "")
-                    .replace("(", "")
-                    .replace(")", "");
-            if (!addresses.containsKey(label)) {
+                .replace("goto", "")
+                .replace("(", "")
+                .replace(")", "");
+            label = label.substring(0, Math.min(label.length(), MAX_LABEL_LENGTH - 1));
+
+            if (! ADDRESS_MAPPINGS.containsKey(label)) {
                 System.out.println(label);
-                throw new TextParsingException("");
+                throw new TextParsingException("Label '" + label + "' does not exist!");
             } else {
-                String address = Integer.toHexString(addresses.get(label));
+                String address = Integer.toHexString(ADDRESS_MAPPINGS.get(label));
+                //System.out.println(ret);
                 return ("[0A " + address.substring(0, 2) + " " + address.substring(2, 4) + " " + address.substring(4) + "]").toUpperCase();
             }
-        });
+        }, null, ParamType.LONG);
 
-        commands.put("call\\(.*\\)", commands.get("goto\\(.*\\)"));
+        addCommand("call", ".{1," + MAX_LABEL_LENGTH + "}", s -> {
+            String label = s
+                .replace("call", "")
+                .replace("(", "")
+                .replace(")", "");
+
+            label = label.substring(0, Math.min(label.length(), MAX_LABEL_LENGTH - 1));
+            if (! ADDRESS_MAPPINGS.containsKey(label)) {
+                System.out.println(label);
+                throw new TextParsingException("Label '" + label + "' does not exist!");
+            } else {
+                String address = Integer.toHexString(ADDRESS_MAPPINGS.get(label));
+                //System.out.println(ret);
+                return ("[08 " + address.substring(0, 2) + " " + address.substring(2, 4) + " " + address.substring(4) + "]").toUpperCase();
+            }
+        }, null, ParamType.LONG);
     }
 }
