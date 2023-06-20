@@ -7,6 +7,7 @@ import limbo.drive.api.graphics.core.component.MouseControl;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,30 +15,39 @@ import java.util.HashMap;
 public abstract class GuiBase {
     private DisplayProperties properties;
     
+    @SafeVarargs
     public GuiBase(
         @NotNull DisplayProperties properties,
-        @NotNull ArrayList<PB3K.RenderCallback> setup,
-        @NotNull ArrayList<PB3K.RenderCallback> background,
-        @NotNull ArrayList<PB3K.RenderCallback> textures,
-        @NotNull ArrayList<PB3K.RenderCallback> controls,
-        @NotNull ArrayList<PB3K.RenderCallback> strings,
-        @NotNull ArrayList<PB3K.RenderCallback> effects,
-        @NotNull ArrayList<PB3K.InputCallback> mouse,
-        @NotNull ArrayList<PB3K.InputCallback> keyboard,
-        @NotNull ArrayList<MouseControl> mouseControls
+        @Nullable ArrayList<MouseControl> mouseControls,
+        @Nullable ArrayList<PB3K.InputCallback> mouse,
+        @Nullable ArrayList<PB3K.InputCallback> keyboard,
+        @Nullable ArrayList<PB3K.RenderCallback>... callbacks
     ) {
         this.properties = properties;
         this.MOUSE_CONTROLS = mouseControls;
 
-        RENDERERS.put(PB3K.RenderStage.SETUP, setup);
-        RENDERERS.put(PB3K.RenderStage.BACKGROUND, background);
-        RENDERERS.put(PB3K.RenderStage.TEXTURES, textures);
-        RENDERERS.put(PB3K.RenderStage.CONTROLS, controls);
-        RENDERERS.put(PB3K.RenderStage.STRINGS, strings);
-        RENDERERS.put(PB3K.RenderStage.EFFECTS, effects);
+        //noinspection unchecked
+        ArrayList<PB3K.RenderCallback>[] array = new ArrayList[6];
 
-        INPUT_HANDLERS.put(PB3K.InputType.MOUSE, mouse);
-        INPUT_HANDLERS.put(PB3K.InputType.KEYBOARD, keyboard);
+        if (callbacks.length < 6) {
+            int available = callbacks.length - 1;
+            for (int index = 0; index <= available; index++) {
+                array[index] = callbacks[available] == null ? new ArrayList<>() : callbacks[available];
+            }
+            for (int index = available + 1; index < array.length; index++) {
+                array[index] = new ArrayList<>();
+            }
+        }
+
+        RENDERERS.put(PB3K.RenderStage.SETUP, array[0]);
+        RENDERERS.put(PB3K.RenderStage.BACKGROUND, array[1]);
+        RENDERERS.put(PB3K.RenderStage.TEXTURES, array[2]);
+        RENDERERS.put(PB3K.RenderStage.CONTROLS, array[3]);
+        RENDERERS.put(PB3K.RenderStage.STRINGS, array[4]);
+        RENDERERS.put(PB3K.RenderStage.EFFECTS, array[5]);
+
+        INPUT_HANDLERS.put(PB3K.InputType.MOUSE, mouse == null ? new ArrayList<>() : mouse);
+        INPUT_HANDLERS.put(PB3K.InputType.KEYBOARD, keyboard == null ? new ArrayList<>() : mouse);
     }
 
     protected final ArrayList<MouseControl> MOUSE_CONTROLS;
