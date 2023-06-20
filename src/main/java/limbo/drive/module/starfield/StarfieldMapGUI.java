@@ -1,24 +1,22 @@
-package limbo.drive.old.starfield.gui;
+package limbo.drive.module.starfield;
 
 import com.google.common.collect.Lists;
-import limbo.drive.api.graphics.core.component.MouseControl;
+import io.github.cottonmc.cotton.gui.client.ScreenDrawing;
 import limbo.drive.api.graphics.core.gui.BackgroundType;
 import limbo.drive.api.graphics.core.gui.BorderType;
 import limbo.drive.api.graphics.core.gui.DisplayProperties;
 import limbo.drive.api.graphics.core.gui.GuiBase;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public final class StarfieldGenerationGUI extends GuiBase {
-
-    public StarfieldGenerationGUI() {
+public class StarfieldMapGUI extends GuiBase {
+    public StarfieldMapGUI() {
         super(
             new DisplayProperties(
                 BackgroundType.TEXTURED,
                 BorderType.COLOUR,
                 new Identifier(
                     "limbodrive",
-                    "starfield_generation"
+                    "starfield_map"
                 ),
                 410,
                 225,
@@ -31,29 +29,18 @@ public final class StarfieldGenerationGUI extends GuiBase {
                 )
             ),
             Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
             Lists.newArrayList(
-                new MouseControl(
-                    data -> System.out.println("You clicked button " + data.mouseButton() + "!"),
-                    96,
-                    32,
-                    new Identifier(
-                        "limbodrive",
-                        "textures/gui/button.png"
-                    ),
-                    0xFF_FFFFFF,
-                    8,
-                    24,
-                    Text.literal("Test Button"),
-                    null
-                )
-            )
+                (context, stage, display, posX, posY, mouseX, mouseY) -> {
+                    ScreenDrawing.coloredRect(context, posX, posY, 64, 64, 0xFF_00FF00);
+                }
+            ),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList(),
+            Lists.newArrayList()
         );
     }
 }

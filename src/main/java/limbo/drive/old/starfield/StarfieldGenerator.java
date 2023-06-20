@@ -2,7 +2,7 @@ package limbo.drive.old.starfield;
 
 import limbo.drive.LimboDrive;
 import limbo.drive.old.starfield.data.Star;
-import limbo.drive.module.util.StringHelper;
+import limbo.drive.util.StringHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;

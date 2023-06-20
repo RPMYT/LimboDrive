@@ -2,7 +2,7 @@ package limbo.drive.old.starfield;
 
 import limbo.drive.LimboDrive;
 import limbo.drive.old.starfield.gui.StarfieldGenerationGUI;
-import limbo.drive.module.graphics.core.PB3K;
+import limbo.drive.api.graphics.core.PB3K;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;

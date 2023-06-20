@@ -1,16 +1,18 @@
 package limbo.drive;
 
+import limbo.drive.module.starfield.StarfieldMapItem;
 import limbo.drive.old.starfield.StarfieldGenerator;
 import limbo.drive.old.starfield.StarmapBlock;
 import limbo.drive.old.starfield.StarmapGUI;
 import limbo.drive.old.starfield.data.Star;
-import limbo.drive.module.graphics.core.PB3K;
+import limbo.drive.api.graphics.core.PB3K;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIo;
@@ -50,15 +52,10 @@ public class LimboDrive {
 		public void onInitialize() {
 			this.initData();
 
-			Screens.STARMAP = Registry.register(Registries.SCREEN_HANDLER, new Identifier(
-							"limbodrive",
-							"starmap"
-					),
-					new ScreenHandlerType<>((syncId, inventory) -> new StarmapGUI.Description(syncId, inventory, ScreenHandlerContext.EMPTY),
-							FeatureFlags.VANILLA_FEATURES));
-
 			Blocks.init();
 			BlockEntities.init();
+
+			Items.init();
 
 			PB3K.setup();
 		}
@@ -159,10 +156,6 @@ public class LimboDrive {
 		}
 	}
 
-	public static class Screens {
-		public static ScreenHandlerType<StarmapGUI.Description> STARMAP;
-	}
-
 	public static class Blocks {
 		public static final Block STARMAP = new StarmapBlock();
 
@@ -182,5 +175,17 @@ public class LimboDrive {
 		);
 
 		public static void init() {}
+	}
+
+	public static class Items {
+		public static final Item STARFIELD_MAP = new StarfieldMapItem();
+
+		public static void init() {
+			Registry.register(
+				Registries.ITEM,
+				new Identifier("limbodrive", "starfield_map"),
+				STARFIELD_MAP
+			);
+		}
 	}
 }
