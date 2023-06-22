@@ -62,15 +62,9 @@ public class PB3K {
                 )
             ),
 
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList()
+            null,
+            null,
+            null
         ) {};
 
         private static GuiBase TARGET_GUI = ERROR;

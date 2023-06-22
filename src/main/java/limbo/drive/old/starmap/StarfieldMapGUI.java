@@ -1,11 +1,12 @@
 package limbo.drive.old.starmap;
 
-import com.google.common.collect.Lists;
-import io.github.cottonmc.cotton.gui.client.ScreenDrawing;
+import limbo.drive.api.graphics.core.Display;
+import limbo.drive.api.graphics.core.PB3K;
 import limbo.drive.api.graphics.core.gui.BackgroundType;
 import limbo.drive.api.graphics.core.gui.BorderType;
 import limbo.drive.api.graphics.core.gui.DisplayProperties;
 import limbo.drive.api.graphics.core.gui.GuiBase;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 
 public class StarfieldMapGUI extends GuiBase {
@@ -28,19 +29,14 @@ public class StarfieldMapGUI extends GuiBase {
                     "textures/gui/starmap.png"
                 )
             ),
-            Lists.newArrayList(),
-            Lists.newArrayList(
-                (context, stage, display, posX, posY, mouseX, mouseY) -> {
-                    ScreenDrawing.coloredRect(context, posX, posY, 64, 64, 0xFF_00FF00);
-                }
-            ),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList(),
-            Lists.newArrayList()
+            null,
+            null,
+            null
         );
+    }
+
+    @Override
+    public void render(DrawContext context, PB3K.RenderStage stage, Display display, int posX, int posY, int mouseX, int mouseY) {
+        super.render(context, stage, display, posX, posY, mouseX, mouseY);
     }
 }
