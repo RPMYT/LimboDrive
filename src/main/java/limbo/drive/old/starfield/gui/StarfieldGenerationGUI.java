@@ -39,20 +39,6 @@ public final class StarfieldGenerationGUI extends GuiBase {
             Lists.newArrayList(),
             Lists.newArrayList(),
             Lists.newArrayList(
-                new MouseControl(
-                    data -> System.out.println("You clicked button " + data.mouseButton() + "!"),
-                    96,
-                    32,
-                    new Identifier(
-                        "limbodrive",
-                        "textures/gui/button.png"
-                    ),
-                    0xFF_FFFFFF,
-                    8,
-                    24,
-                    Text.literal("Test Button"),
-                    null
-                )
             )
         );
     }

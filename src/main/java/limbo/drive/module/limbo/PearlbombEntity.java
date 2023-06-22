@@ -37,6 +37,7 @@ public class PearlbombEntity extends EnderPearlEntity {
     }
 
     private void detonate() {
+        // TODO: end gateway detonation, because fast velocities do NOT work
         if (!this.getWorld().isClient) {
             this.shouldDetonate = false;
             Explosion explosion = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 6.5f, World.ExplosionSourceType.MOB);
@@ -87,12 +88,10 @@ public class PearlbombEntity extends EnderPearlEntity {
         if (result instanceof BlockHitResult bhr) {
             if (this.getWorld().getBlockState(bhr.getBlockPos()).getBlock() instanceof HoneyBlock) {
                 Vec3d previous = this.getVelocity();
-                Vec3d updated = previous.negate().multiply(1.3);
+                Vec3d updated = previous.negate();
 
-                this.setVelocity(updated.x * 1.1, updated.y * 1.1, updated.z * 1.1, 2.3f, 0.15f);
+                this.setVelocity(updated.x, updated.y, updated.z, 1.17f, 0.15f);
                 this.updateRotation();
-
-                System.out.println("New velocity: " + this.getVelocity());
             } else {
                 this.hasStuck = true;
             }
