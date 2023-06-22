@@ -37,7 +37,7 @@ public class StarmapGUI extends CottonInventoryScreen<StarmapGUI.Description> {
 
     public static class Description extends SyncedGuiDescription {
         public Description(int syncId, PlayerInventory inventory, ScreenHandlerContext context) {
-            super(LimboDrive.Screens.STARMAP, syncId, inventory, getBlockInventory(context, 4), getBlockPropertyDelegate(context));
+            super(null, syncId, inventory, getBlockInventory(context, 4), getBlockPropertyDelegate(context));
 
             Renderer renderer = new Renderer();
             this.setRootPanel(renderer);

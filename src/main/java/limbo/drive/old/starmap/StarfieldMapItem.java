@@ -1,4 +1,4 @@
-package limbo.drive.module.starfield;
+package limbo.drive.old.starmap;
 
 import limbo.drive.api.graphics.core.PB3K;
 import net.minecraft.entity.player.PlayerEntity;

@@ -46,7 +46,7 @@ public class StarmapBlock extends BlockWithEntity {
     public static class Entity extends BlockEntity implements NamedScreenHandlerFactory {
 
         public Entity(BlockPos pos, BlockState state) {
-            super(LimboDrive.BlockEntities.STARMAP, pos, state);
+            super(null, pos, state);
         }
 
         @Override

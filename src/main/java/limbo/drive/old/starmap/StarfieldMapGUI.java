@@ -1,4 +1,4 @@
-package limbo.drive.module.starfield;
+package limbo.drive.old.starmap;
 
 import com.google.common.collect.Lists;
 import io.github.cottonmc.cotton.gui.client.ScreenDrawing;
