@@ -1,19 +1,29 @@
 package limbo.drive.module.limbo;
 
 import limbo.drive.LimboDrive;
+import net.minecraft.block.AirBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.EndGatewayBlock;
 import net.minecraft.block.HoneyBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.explosion.Explosion;
 
 public class PearlbombEntity extends EnderPearlEntity {
@@ -36,8 +46,12 @@ public class PearlbombEntity extends EnderPearlEntity {
         this.setPos(owner.getX(), owner.getEyeY() - 0.10000000149011612, owner.getZ());
     }
 
-    private void detonate() {
-        // TODO: end gateway detonation, because fast velocities do NOT work
+    @Override
+    public boolean shouldRender(double distance) {
+        return !(this.stuckTo == this);
+    }
+
+    private <T extends Entity> void detonate() {
         if (!this.getWorld().isClient) {
             this.shouldDetonate = false;
             Explosion explosion = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 6.5f, World.ExplosionSourceType.MOB);
@@ -47,7 +61,7 @@ public class PearlbombEntity extends EnderPearlEntity {
             for (Entity other : this.getWorld().getOtherEntities(this, box)) {
                 System.out.println(other);
                 if (other instanceof LivingEntity living) {
-                    float damage = 65 - (living.distanceTo(this) * 4.5f);
+                    float damage = 65 - (living.distanceTo(this) * 12.5f);
                     living.takeKnockback(1.25 / living.distanceTo(this), 2.0, 2.0);
 
                     if (this.getOwner() != null && living.getUuid() == this.getOwner().getUuid()) {
@@ -58,8 +72,42 @@ public class PearlbombEntity extends EnderPearlEntity {
                         damage = 0;
                     }
 
-                    System.out.println("damaging entity " + living + " with amount " + damage);
+//                    System.out.println("damaging entity " + living + " with amount " + damage);
                     living.damage(new LimboDriveDamage(this.getOwner() == null ? this : this.getOwner()), damage);
+                }
+            }
+            if (this.getWorld().getBlockState(this.getBlockPos()).getBlock() instanceof EndGatewayBlock) {
+                // Singleton? More like SINGULARITY!
+                Explosion hypermurderizer = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 18f, World.ExplosionSourceType.MOB);
+
+                this.stuckTo = null;
+                Box huge = Box.of(new Vec3d(0, 64, 0), 580, 280, 580);
+                for (Entity other : this.getWorld().getOtherEntities(this, huge)) {
+                    System.out.println(other);
+                    if (other instanceof LivingEntity living) {
+                        living.takeKnockback(87.25 / living.distanceTo(this), 2.0, 2.0);
+                        float damage = living.getMaxHealth();
+
+                        if (living instanceof PlayerEntity player && player.getAbilities().creativeMode) {
+                            damage = 0;
+                        }
+
+                        System.out.println("damaging entity " + living + " with amount " + damage);
+                        living.damage(new LimboDriveDamage(this.getOwner() == null ? this : this.getOwner()), damage);
+                        living.kill();
+                    }
+                }
+
+                hypermurderizer.collectBlocksAndDamageEntities();
+                hypermurderizer.affectWorld(true);
+
+                if (LimboDrive.AtomicFuckery.REGISTRY_MANAGER.get() != null) {
+                    ServerWorld world = (ServerWorld) this.getWorld();
+                    if (world.getDimension() == LimboDrive.AtomicFuckery.REGISTRY_MANAGER.get().get(RegistryKeys.DIMENSION_TYPE).get(DimensionTypes.THE_END)) {
+                        if (!world.getEntitiesByType(EntityType.ENDER_DRAGON, LivingEntity::isDead).isEmpty()) {
+                            world.getServer().sendMessage(Text.of("A portal to Limbo has opened, things may no longer be as they seem.").copy().formatted(Formatting.RED, Formatting.BOLD));
+                        }
+                    }
                 }
             }
 
@@ -67,6 +115,11 @@ public class PearlbombEntity extends EnderPearlEntity {
             explosion.affectWorld(true);
             this.remove(RemovalReason.DISCARDED);
         }
+    }
+
+    @Override
+    public boolean collidesWithStateAtPos(BlockPos pos, BlockState state) {
+        return !state.isAir();
     }
 
     @Override
@@ -82,26 +135,33 @@ public class PearlbombEntity extends EnderPearlEntity {
         }
 
         if (result instanceof EntityHitResult ehr) {
-            this.stuckTo = ehr.getEntity();
+            if (ehr.getEntity() != this) {
+                this.stuckTo = ehr.getEntity();
+            }
         }
 
         if (result instanceof BlockHitResult bhr) {
-            if (this.getWorld().getBlockState(bhr.getBlockPos()).getBlock() instanceof HoneyBlock) {
-                Vec3d previous = this.getVelocity();
-                Vec3d updated = previous.negate();
+            if (!this.getWorld().getBlockState(bhr.getBlockPos()).isAir()) {
+                if (this.getWorld().getBlockState(bhr.getBlockPos()).getBlock() instanceof HoneyBlock) {
+                    Vec3d previous = this.getVelocity();
+                    Vec3d updated = previous.negate();
 
-                this.setVelocity(updated.x, updated.y, updated.z, 1.17f, 0.15f);
-                this.updateRotation();
-            } else {
-                this.hasStuck = true;
+                    this.setVelocity(updated.x, updated.y, updated.z, 1.17f, 0.15f);
+                    this.updateRotation();
+                } else {
+                    this.hasStuck = true;
+                    this.stuckTo = this;
+                }
             }
         }
     }
 
     @Override
     public void tick() {
+        if (!(this.getWorld().getBlockState(this.getBlockPos()).getBlock() instanceof AirBlock)) {
+            this.stuckTo = this;
+        }
 
-        super.tick();
 //        System.out.println(this.getPos());
 
         if (this.shouldDetonate) {
@@ -115,10 +175,17 @@ public class PearlbombEntity extends EnderPearlEntity {
             if (this.timeSinceSticking >= 600) {
                 this.shouldDetonate = true;
             }
+        } else {
+            super.tick();
         }
 
         if (this.age >= 1200) {
             this.detonate();
         }
+    }
+
+    @Override
+    public boolean isSpectator() {
+        return true;
     }
 }
