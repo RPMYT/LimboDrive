@@ -8,7 +8,6 @@ import net.minecraft.block.HoneyBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.boss.dragon.phase.PhaseType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
@@ -21,7 +20,6 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
@@ -52,7 +50,7 @@ public class PearlbombEntity extends EnderPearlEntity {
         return !(this.stuckTo == this);
     }
 
-    private <T extends Entity> void detonate() {
+    private void detonate() {
         if (!this.getWorld().isClient) {
             this.shouldDetonate = false;
             Explosion explosion = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 6.5f, World.ExplosionSourceType.MOB);
@@ -78,11 +76,12 @@ public class PearlbombEntity extends EnderPearlEntity {
                 }
             }
             if (this.getWorld().getBlockState(this.getBlockPos()).getBlock() instanceof EndGatewayBlock) {
-                if (LimboDrive.AtomicFuckery.REGISTRY_MANAGER.get() != null) {
+                if (LimboDrive.Fuckery.REGISTRY_MANAGER != null) {
                     ServerWorld world = (ServerWorld) this.getWorld();
-                    if (world.getDimension() == LimboDrive.AtomicFuckery.REGISTRY_MANAGER.get().get(RegistryKeys.DIMENSION_TYPE).get(DimensionTypes.THE_END)) {
+                    if (world.getDimension() == LimboDrive.Fuckery.REGISTRY_MANAGER.get(RegistryKeys.DIMENSION_TYPE).get(DimensionTypes.THE_END)) {
                         if (!world.getEntitiesByType(EntityType.ENDER_DRAGON, dragon -> dragon.getPhaseManager().getCurrent().getType() == PhaseType.DYING).isEmpty()) {
-                            world.getServer().sendMessage(Text.of("A portal to Limbo has opened, things may no longer be as they seem.").copy().formatted(Formatting.RED, Formatting.BOLD));
+                            world.getServer().sendMessage(Text.of("A portal to Limbo has opened, forever altering this world.").copy().formatted(Formatting.DARK_GRAY, Formatting.BOLD));
+                            world.getServer().sendMessage(Text.of("Things may no longer be as they seem.").copy().formatted(Formatting.DARK_RED, Formatting.BOLD, Formatting.ITALIC));
 
                             // Singleton? More like SINGULARITY!
                             Explosion hypermurderizer = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 18f, World.ExplosionSourceType.MOB);
