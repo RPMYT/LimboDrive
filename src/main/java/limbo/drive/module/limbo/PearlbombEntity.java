@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.entity.boss.dragon.phase.PhaseType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
 import net.minecraft.registry.RegistryKeys;
@@ -77,35 +78,35 @@ public class PearlbombEntity extends EnderPearlEntity {
                 }
             }
             if (this.getWorld().getBlockState(this.getBlockPos()).getBlock() instanceof EndGatewayBlock) {
-                // Singleton? More like SINGULARITY!
-                Explosion hypermurderizer = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 18f, World.ExplosionSourceType.MOB);
-
-                this.stuckTo = null;
-                Box huge = Box.of(new Vec3d(0, 64, 0), 580, 280, 580);
-                for (Entity other : this.getWorld().getOtherEntities(this, huge)) {
-                    System.out.println(other);
-                    if (other instanceof LivingEntity living) {
-                        living.takeKnockback(87.25 / living.distanceTo(this), 2.0, 2.0);
-                        float damage = living.getMaxHealth();
-
-                        if (living instanceof PlayerEntity player && player.getAbilities().creativeMode) {
-                            damage = 0;
-                        }
-
-                        System.out.println("damaging entity " + living + " with amount " + damage);
-                        living.damage(new LimboDriveDamage(this.getOwner() == null ? this : this.getOwner()), damage);
-                        living.kill();
-                    }
-                }
-
-                hypermurderizer.collectBlocksAndDamageEntities();
-                hypermurderizer.affectWorld(true);
-
                 if (LimboDrive.AtomicFuckery.REGISTRY_MANAGER.get() != null) {
                     ServerWorld world = (ServerWorld) this.getWorld();
                     if (world.getDimension() == LimboDrive.AtomicFuckery.REGISTRY_MANAGER.get().get(RegistryKeys.DIMENSION_TYPE).get(DimensionTypes.THE_END)) {
-                        if (!world.getEntitiesByType(EntityType.ENDER_DRAGON, LivingEntity::isDead).isEmpty()) {
+                        if (!world.getEntitiesByType(EntityType.ENDER_DRAGON, dragon -> dragon.getPhaseManager().getCurrent().getType() == PhaseType.DYING).isEmpty()) {
                             world.getServer().sendMessage(Text.of("A portal to Limbo has opened, things may no longer be as they seem.").copy().formatted(Formatting.RED, Formatting.BOLD));
+
+                            // Singleton? More like SINGULARITY!
+                            Explosion hypermurderizer = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 18f, World.ExplosionSourceType.MOB);
+
+                            this.stuckTo = null;
+                            Box huge = Box.of(new Vec3d(0, 64, 0), 580, 280, 580);
+                            for (Entity other : this.getWorld().getOtherEntities(this, huge)) {
+                                System.out.println(other);
+                                if (other instanceof LivingEntity living) {
+                                    living.takeKnockback(87.25 / living.distanceTo(this), 2.0, 2.0);
+                                    float damage = living.getMaxHealth();
+
+                                    if (living instanceof PlayerEntity player && player.getAbilities().creativeMode) {
+                                        damage = 0;
+                                    }
+
+//                        System.out.println("damaging entity " + living + " with amount " + damage);
+                                    living.damage(new LimboDriveDamage(this.getOwner() == null ? this : this.getOwner()), damage);
+                                    living.kill();
+                                }
+                            }
+
+                            hypermurderizer.collectBlocksAndDamageEntities();
+                            hypermurderizer.affectWorld(true);
                         }
                     }
                 }
