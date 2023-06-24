@@ -14,10 +14,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 
-public class LimboDriveDamage extends DamageSource {
+public class RejectionDamage extends DamageSource {
     private final Entity attacker;
 
-    public LimboDriveDamage(@Nullable Entity attacker) {
+    public RejectionDamage(@Nullable Entity attacker) {
         super(LimboDrive.Fuckery.REGISTRY_MANAGER.get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.OUT_OF_WORLD));
         this.attacker = attacker;
     }
@@ -27,16 +27,22 @@ public class LimboDriveDamage extends DamageSource {
         Random random = Random.create();
 
         boolean xkcd = random.nextBetween(0, 100) == 100;
-        if (this.attacker != null && this.getPosition() != null) {
+        boolean ftb = random.nextBetween(0, 1000) == 1000 && attacker == null;
+        
+        if (this.attacker != null && attacker.getBlockPos() != null) {
             World world = this.attacker.getWorld();
             if (!world.isClient) {
                 if (world.getDimension() == LimboDrive.Fuckery.REGISTRY_MANAGER.get(RegistryKeys.DIMENSION_TYPE).get(DimensionTypes.THE_END)) {
-                    BlockPos pos = new BlockPos((int) this.getPosition().x, (int) this.getPosition().y, (int) this.getPosition().z);
+                    BlockPos pos = new BlockPos((int) attacker.getBlockPos().getX(), (int) attacker.getBlockPos().getY(), (int) attacker.getBlockPos().getZ());
                     if (world.getBlockState(pos).getBlock() instanceof EndGatewayBlock) {
                         xkcd = true;
                     }
                 }
             }
+        }
+        
+        if (ftb) {
+            return Text.translatable("limbodrive.death.ftb", killed.getName());
         }
 
         if (xkcd) {

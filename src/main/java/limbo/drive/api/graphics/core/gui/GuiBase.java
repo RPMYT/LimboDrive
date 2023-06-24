@@ -5,6 +5,7 @@ import limbo.drive.api.graphics.core.Display;
 import limbo.drive.api.graphics.core.PB3K;
 import limbo.drive.api.graphics.core.component.MouseControl;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +25,7 @@ public abstract class GuiBase {
         @Nullable ArrayList<PB3K.RenderCallback>... callbacks
     ) {
         this.properties = properties;
-        this.MOUSE_CONTROLS = mouseControls;
+        this.MOUSE_CONTROLS = mouseControls == null ? new ArrayList<>() : mouseControls;
 
         //noinspection unchecked
         ArrayList<PB3K.RenderCallback>[] array = new ArrayList[6];
@@ -32,13 +33,16 @@ public abstract class GuiBase {
         if (callbacks.length < 6) {
             int available = callbacks.length - 1;
             for (int index = 0; index <= available; index++) {
-                array[index] = callbacks[available] == null ? new ArrayList<>() : callbacks[available];
+                array[index] = callbacks[index] == null ? new ArrayList<>() : callbacks[index];
+                System.out.println(array[index]);
             }
             for (int index = available + 1; index < array.length; index++) {
                 array[index] = new ArrayList<>();
             }
         }
 
+        System.out.println("0: " + array[0]);
+        System.out.println("1: " + array[1]);
         RENDERERS.put(PB3K.RenderStage.SETUP, array[0]);
         RENDERERS.put(PB3K.RenderStage.BACKGROUND, array[1]);
         RENDERERS.put(PB3K.RenderStage.TEXTURES, array[2]);
@@ -47,7 +51,7 @@ public abstract class GuiBase {
         RENDERERS.put(PB3K.RenderStage.EFFECTS, array[5]);
 
         INPUT_HANDLERS.put(PB3K.InputType.MOUSE, mouse == null ? new ArrayList<>() : mouse);
-        INPUT_HANDLERS.put(PB3K.InputType.KEYBOARD, keyboard == null ? new ArrayList<>() : mouse);
+        INPUT_HANDLERS.put(PB3K.InputType.KEYBOARD, keyboard == null ? new ArrayList<>() : keyboard);
     }
 
     protected final ArrayList<MouseControl> MOUSE_CONTROLS;
@@ -154,4 +158,6 @@ public abstract class GuiBase {
             });
         }
     }
+
+    public void onClosed(PlayerEntity player) {}
 }

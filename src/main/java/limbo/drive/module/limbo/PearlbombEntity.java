@@ -8,6 +8,7 @@ import net.minecraft.block.HoneyBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.boss.dragon.phase.PhaseType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
@@ -72,7 +73,7 @@ public class PearlbombEntity extends EnderPearlEntity {
                     }
 
 //                    System.out.println("damaging entity " + living + " with amount " + damage);
-                    living.damage(new LimboDriveDamage(this.getOwner() == null ? this : this.getOwner()), damage);
+                    living.damage(new RejectionDamage(this.getOwner() == null ? this : this.getOwner()), damage);
                 }
             }
             if (this.getWorld().getBlockState(this.getBlockPos()).getBlock() instanceof EndGatewayBlock) {
@@ -80,27 +81,42 @@ public class PearlbombEntity extends EnderPearlEntity {
                     ServerWorld world = (ServerWorld) this.getWorld();
                     if (world.getDimension() == LimboDrive.Fuckery.REGISTRY_MANAGER.get(RegistryKeys.DIMENSION_TYPE).get(DimensionTypes.THE_END)) {
                         if (!world.getEntitiesByType(EntityType.ENDER_DRAGON, dragon -> dragon.getPhaseManager().getCurrent().getType() == PhaseType.DYING).isEmpty()) {
-                            world.getServer().sendMessage(Text.of("A portal to Limbo has opened, forever altering this world.").copy().formatted(Formatting.DARK_GRAY, Formatting.BOLD));
-                            world.getServer().sendMessage(Text.of("Things may no longer be as they seem.").copy().formatted(Formatting.DARK_RED, Formatting.BOLD, Formatting.ITALIC));
+                            if (Worldbleed.RIFT_COUNT == 0) {
+                                world.getServer().getPlayerManager().broadcast(Text.of("The link between Limbo and Reality has been renewed, forever altering this world...").copy().formatted(Formatting.DARK_GRAY), false);
+                                world.getServer().getPlayerManager().broadcast(Text.of("Things may no longer be as they seem.").copy().formatted(Formatting.DARK_RED), false);
+                            }
+
+                            Worldbleed.open(world.getServer().getOverworld());
 
                             // Singleton? More like SINGULARITY!
-                            Explosion hypermurderizer = this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 18f, World.ExplosionSourceType.MOB);
+                            Explosion hypermurderizer = this.getWorld().createExplosion(this, 0, 64, 0, 18f, World.ExplosionSourceType.MOB);
 
                             this.stuckTo = null;
                             Box huge = Box.of(new Vec3d(0, 64, 0), 580, 280, 580);
                             for (Entity other : this.getWorld().getOtherEntities(this, huge)) {
-                                System.out.println(other);
+//                                System.out.println(other);
                                 if (other instanceof LivingEntity living) {
                                     living.takeKnockback(87.25 / living.distanceTo(this), 2.0, 2.0);
-                                    float damage = living.getMaxHealth();
+                                    float damage = Float.MAX_VALUE;
 
                                     if (living instanceof PlayerEntity player && player.getAbilities().creativeMode) {
                                         damage = 0;
                                     }
 
 //                        System.out.println("damaging entity " + living + " with amount " + damage);
-                                    living.damage(new LimboDriveDamage(this.getOwner() == null ? this : this.getOwner()), damage);
-                                    living.kill();
+                                    living.damage(new RejectionDamage(this.getOwner() == null ? this : this.getOwner()), damage);
+
+                                    if (!living.isDead() && !(living instanceof EnderDragonEntity) && damage != 0) {
+                                        // Cancelling death events? Not cool.
+                                        living.kill();
+
+                                        if (!living.isDead()) {
+                                            // You wanna be difficult? Fine.
+                                            // This *will* freeze the world in singleplayer...
+                                            // ...but that's what you get for cheating.
+                                            living.remove(RemovalReason.DISCARDED);
+                                        }
+                                    }
                                 }
                             }
 

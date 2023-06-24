@@ -1,11 +1,12 @@
 package limbo.drive.api.graphics.core;
 
-import com.google.common.collect.Lists;
 import io.github.cottonmc.cotton.gui.SyncedGuiDescription;
 import limbo.drive.api.graphics.core.gui.BackgroundType;
 import limbo.drive.api.graphics.core.gui.BorderType;
 import limbo.drive.api.graphics.core.gui.DisplayProperties;
 import limbo.drive.api.graphics.core.gui.GuiBase;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,6 +25,7 @@ public class PB3K {
 
     private static ScreenHandlerType<RenderTarget> HANDLER;
 
+    @Environment(EnvType.CLIENT)
     public static void initialize() {
         LOGGER.info("Initializing display...");
         HandledScreens.<PB3K.RenderTarget, Screen>register(HANDLER, (handler, playerInventory, title) -> new Screen(handler, playerInventory));
@@ -84,8 +86,10 @@ public class PB3K {
         @Override
         public void onClosed(PlayerEntity player) {
             super.onClosed(player);
+            TARGET_GUI.onClosed(player);
             TARGET_GUI = ERROR;
         }
+
     }
 
     public enum RenderStage {

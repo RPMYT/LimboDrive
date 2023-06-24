@@ -1,15 +1,18 @@
 package limbo.drive;
 
 import limbo.drive.api.graphics.core.PB3K;
+import limbo.drive.module.limbo.LimboRiftBlock;
 import limbo.drive.module.limbo.PearlbombDetonatorItem;
 import limbo.drive.module.limbo.PearlbombEntity;
 import limbo.drive.module.limbo.PearlbombItem;
 import limbo.drive.module.limbo.Worldbleed;
+import limbo.drive.module.navigation.LimboNavigatorItem;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.minecraft.block.Block;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
@@ -36,7 +39,6 @@ public class LimboDrive {
 		public static class Initializer implements ClientModInitializer {
 			@Override
 			public void onInitializeClient() {
-
 				PB3K.initialize();
 				EntityRendererRegistry.register(LimboDrive.Initializer.PEARLBOMB, FlyingItemEntityRenderer::new);
 			}
@@ -46,8 +48,6 @@ public class LimboDrive {
     public static final Logger LOGGER = LogManager.getLogger("Limbo Drive");
 
 	public static class Initializer implements ModInitializer {
-
-
 		public static final EntityType<PearlbombEntity> PEARLBOMB = Registry.register(
 			Registries.ENTITY_TYPE,
 			new Identifier("limbodrive", "pearlbomb"),
@@ -61,6 +61,10 @@ public class LimboDrive {
 		public static final Item PEARLBOMB_DETONATOR_STICKY = new PearlbombItem(true);
 
 		public static final Item DETONATOR = new PearlbombDetonatorItem();
+
+		public static final Item NAVIGATOR = new LimboNavigatorItem();
+
+		public static final Block RIFT = new LimboRiftBlock();
 
 		@Override
 		public void onInitialize() {
@@ -84,7 +88,21 @@ public class LimboDrive {
 				DETONATOR
 			);
 
+			Registry.register(
+				Registries.ITEM,
+				new Identifier("limbodrive", "navigator"),
+				NAVIGATOR
+			);
+
+			Registry.register(
+				Registries.BLOCK,
+				new Identifier("limbodrive", "rift"),
+				RIFT
+			);
+
 			PB3K.setup();
+
+			System.out.println(PB3K.InputData.class.getName());
 		}
 
 		private void registerEvents() {
@@ -92,7 +110,7 @@ public class LimboDrive {
 				// I sure do love me some fuckery
 				Fuckery.REGISTRY_MANAGER = server.getRegistryManager();
 
-				File saved = server.getFile("world/bleed.dat");
+				File saved = server.getFile("worldbleed.dat");
 
 				boolean proceed = true;
 				if (!saved.exists()) {
@@ -122,7 +140,7 @@ public class LimboDrive {
 			});
 
 			ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
-				File saved = server.getFile("world/bleed.dat");
+				File saved = server.getFile("worldbleed.dat");
 
 				boolean proceed = true;
 				if (!saved.exists()) {
