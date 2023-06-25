@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TileBuffer extends RenderBuffer {
-    private record Tile(int x, int y, int colour, TileData data) {}
+    private record Tile(int x, int y, int index, int tileset) {}
 
     private final int width;
     private final int height;
@@ -26,12 +26,12 @@ public class TileBuffer extends RenderBuffer {
         return new TileBuffer(width, height);
     }
 
-    public TileBuffer add(int x, int y, TileData data) {
+    public TileBuffer add(int x, int y, int index, int tileset) {
         contents.add(new Tile(
             x,
             y,
-            0x00_000000,
-            data
+            index,
+            tileset
         ));
 
         return this;
@@ -43,23 +43,15 @@ public class TileBuffer extends RenderBuffer {
         int startY = 6 + context.posY;
 
         for (Tile tile : this.contents) {
-            if (!tile.data.texture().equals("empty")) {
-                if (context.visible.getLeft().apply(new Pair<>(tile.x, tile.y))) {
-                    if (tile.x <= this.width && tile.y <= this.height) {
-                        ScreenDrawing.texturedRect(context.context,
-                            (tile.x * tile.data.width()) + startX,
-                            (tile.y * tile.data.height()) + startY,
-                            tile.data.width(),
-                            tile.data.height(),
-                            new Identifier("limbodrive:textures/gui/tiles/" + tile.data.texture() + ".png"),
-                            tile.colour != 0 ? tile.colour : 0xFF_FFFFFF);
-                    }
-                }
-            } else if (tile.colour != 0) {
-                if (context.visible.getLeft().apply(new Pair<>(tile.x, tile.y))) {
-                    if (tile.x <= this.width && tile.y <= this.height) {
-                        ScreenDrawing.coloredRect(context.context, (tile.x * 16) + startX, (tile.y * 16) + startY, 16, 16, tile.colour);
-                    }
+            if (context.visible.getLeft().apply(new Pair<>(tile.x, tile.y))) {
+                if (tile.x <= this.width && tile.y <= this.height) {
+                    ScreenDrawing.texturedRect(context.context,
+                        (tile.x * 32) + startX,
+                        (tile.y * 32) + startY,
+                        32,
+                        32,
+                        new Identifier("limbodrive:textures/gui/tiles/" + tile.tileset + "/" + tile.index + ".png"),
+                        0xFF_FFFFFF);
                 }
             }
         }
