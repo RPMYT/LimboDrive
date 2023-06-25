@@ -76,6 +76,10 @@ public class PearlbombEntity extends EnderPearlEntity {
                     living.damage(new RejectionDamage(this.getOwner() == null ? this : this.getOwner()), damage);
                 }
             }
+
+            explosion.collectBlocksAndDamageEntities();
+            explosion.affectWorld(true);
+
             if (this.getWorld().getBlockState(this.getBlockPos()).getBlock() instanceof EndGatewayBlock) {
                 if (LimboDrive.Fuckery.REGISTRY_MANAGER != null) {
                     ServerWorld world = (ServerWorld) this.getWorld();
@@ -112,7 +116,7 @@ public class PearlbombEntity extends EnderPearlEntity {
 
                                         if (!living.isDead()) {
                                             // You wanna be difficult? Fine.
-                                            // This *will* freeze the world in singleplayer...
+                                            // This *will* freeze the world in singleplayer (assuming it's a player entity)...
                                             // ...but that's what you get for cheating.
                                             living.remove(RemovalReason.DISCARDED);
                                         }
@@ -127,9 +131,7 @@ public class PearlbombEntity extends EnderPearlEntity {
                 }
             }
 
-            explosion.collectBlocksAndDamageEntities();
-            explosion.affectWorld(true);
-            this.remove(RemovalReason.DISCARDED);
+            this.discard();
         }
     }
 
@@ -146,6 +148,7 @@ public class PearlbombEntity extends EnderPearlEntity {
 
         if (!sticky) {
             super.onCollision(result);
+            this.detonate();
             this.shouldDetonate = true;
             return;
         }

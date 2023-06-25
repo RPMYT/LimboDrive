@@ -9,6 +9,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +20,10 @@ import java.util.UUID;
 
 public class PearlbombDetonatorItem extends Item {
     public PearlbombDetonatorItem() {
-        super(new Item.Settings().maxCount(1));
+        super(new Item.Settings()
+            .maxCount(1)
+            .rarity(Rarity.UNCOMMON)
+        );
     }
 
     @Override

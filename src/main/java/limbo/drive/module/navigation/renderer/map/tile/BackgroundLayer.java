@@ -15,7 +15,7 @@ public record BackgroundLayer(int width, int height, Tileset tileset, String... 
         if (buffer instanceof TileBuffer) {
             for (int column = 0; column < tiles.length; column++) {
                 for (int row = 0; row < tiles[column].length(); row++) {
-                    ((TileBuffer) buffer).textured(row, column, tileset.tiles.get(tiles[column].charAt(row)));
+                    ((TileBuffer) buffer).add(row, column, tileset.tiles.get(tiles[column].charAt(row)));
                 }
             }
         }

@@ -112,7 +112,7 @@ public class Worldbleed {
     public static void add(BlockPos position) {
         if (CURRENT_RIFT == null) {
             CURRENT_RIFT = UUID.randomUUID();
-            System.out.println("New random UUID ('add'): " + CURRENT_RIFT);
+            System.out.println("New random UUID ('addBackground'): " + CURRENT_RIFT);
         }
 
         System.out.println("Adding to rift ID " + CURRENT_RIFT);
@@ -122,7 +122,7 @@ public class Worldbleed {
         if (!positions.contains(position)) {
             positions.add(position);
         } else {
-            System.out.println("Tried to add a block more than once?? Pos: " + position);
+            System.out.println("Tried to addBackground a block more than once?? Pos: " + position);
         }
         data.setLeft(positions);
 

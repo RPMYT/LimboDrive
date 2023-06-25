@@ -39,7 +39,7 @@ public class LimboNavigatorItem extends Item implements NamedScreenHandlerFactor
                 new Pair<>(new Pair<>(0, 0), new Pair<>(0, 0)),
                 new Pair<>(tiles -> true, sprites -> true),
                 "TestRoom",
-                "test",
+                "test_south",
                 12,
                 12
             );

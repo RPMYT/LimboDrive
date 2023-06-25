@@ -105,22 +105,27 @@ public class SpriteBuffer extends RenderBuffer {
     @SuppressWarnings("SuspiciousNameCombination")
     @Override
     protected void flush(RenderingContext context) {
-        int startX = 116 + context.posX() + offsetX;
-        int startY = 8 + context.posY() + offsetY;
+        int startX = 116 + context.posX + offsetX;
+        int startY = 8 + context.posY + offsetY;
 
         for (Sprite sprite : this.contents) {
             switch (sprite.type()) {
                 case OBJECT -> {
                     ObjectSprite object = (ObjectSprite) sprite;
-                    if (context.visible().getLeft().apply(new Pair<>(object.x, object.y))) {
-                        ScreenDrawing.texturedRect(context.context(), (object.x) + startX, (object.y) + startY, object.width, object.height, new Identifier("limbodrive:textures/gui/sprites/objects/" + object.texture + ".png"), 0xFF_FFFFFF);
+                    if (context.visible.getLeft().apply(new Pair<>(object.x, object.y))) {
+                        ScreenDrawing.texturedRect(context.context, (object.x) + startX, (object.y) + startY, object.width, object.height, new Identifier("limbodrive:textures/gui/sprites/objects/" + object.texture + ".png"), 0xFF_FFFFFF);
                     }
                 }
 
                 case CHARACTER -> {
                     Pair<Integer, Integer> position = new Pair<>(((Character) sprite).x(), ((Character) sprite).y());
-                    if (context.visible().getRight().apply(position)) {
-                        ScreenDrawing.texturedRect(context.context(), position.getLeft() + startX, position.getRight() + startY, ((Character) sprite).width(), ((Character) sprite).height(), new Identifier("limbodrive:textures/gui/sprites/characters/" + ((Character) sprite).texture() + ".png"), 0xFF_FFFFFF);
+                    if (context.visible.getRight().apply(position)) {
+                        String texture = ((Character) sprite).texture();
+                        if (!texture.contains("_")) {
+                            texture = texture + "_south";
+                        }
+
+                        ScreenDrawing.texturedRect(context.context, position.getLeft() + startX, position.getRight() + startY, ((Character) sprite).width(), ((Character) sprite).height(), new Identifier("limbodrive:textures/gui/sprites/characters/" + texture + ".png"), 0xFF_FFFFFF);
                     }
                 }
             }

@@ -34,15 +34,12 @@ public abstract class GuiBase {
             int available = callbacks.length - 1;
             for (int index = 0; index <= available; index++) {
                 array[index] = callbacks[index] == null ? new ArrayList<>() : callbacks[index];
-                System.out.println(array[index]);
             }
             for (int index = available + 1; index < array.length; index++) {
                 array[index] = new ArrayList<>();
             }
         }
 
-        System.out.println("0: " + array[0]);
-        System.out.println("1: " + array[1]);
         RENDERERS.put(PB3K.RenderStage.SETUP, array[0]);
         RENDERERS.put(PB3K.RenderStage.BACKGROUND, array[1]);
         RENDERERS.put(PB3K.RenderStage.TEXTURES, array[2]);
