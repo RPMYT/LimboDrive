@@ -7,11 +7,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TileBuffer extends RenderBuffer {
-    private record Tile(int x, int y, int index, int tileset) {}
+    public record Tile(int x, int y, TileData data) {}
 
     private final int width;
     private final int height;
@@ -26,12 +24,11 @@ public class TileBuffer extends RenderBuffer {
         return new TileBuffer(width, height);
     }
 
-    public TileBuffer add(int x, int y, int index, int tileset) {
+    public TileBuffer add(int x, int y, TileData data) {
         contents.add(new Tile(
             x,
             y,
-            index,
-            tileset
+            data
         ));
 
         return this;
@@ -46,12 +43,13 @@ public class TileBuffer extends RenderBuffer {
             if (context.visible.getLeft().apply(new Pair<>(tile.x, tile.y))) {
                 if (tile.x <= this.width && tile.y <= this.height) {
                     ScreenDrawing.texturedRect(context.context,
-                        (tile.x * 32) + startX,
-                        (tile.y * 32) + startY,
-                        32,
-                        32,
-                        new Identifier("limbodrive:textures/gui/tiles/" + tile.tileset + "/" + tile.index + ".png"),
-                        0xFF_FFFFFF);
+                        (tile.x * 8) + startX,
+                        (tile.y * 8) + startY,
+                        8,
+                        8,
+                        new Identifier("limbodrive:textures/gui/tilesets/" + tile.data.tileset() + "/" + tile.data.index() + ".png"),
+                        0xFF_FFFFFF
+                    );
                 }
             }
         }

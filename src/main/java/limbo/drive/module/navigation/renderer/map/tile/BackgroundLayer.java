@@ -5,7 +5,11 @@ import limbo.drive.module.navigation.renderer.map.layer.LayerType;
 import limbo.drive.module.navigation.renderer.map.layer.MapLayer;
 import net.minecraft.util.Pair;
 
-public record BackgroundLayer(int width, int height, int tileset, Pair<Pair<Integer, Integer>, Integer>... tiles) implements MapLayer {
+public record BackgroundLayer(int width, int height, String tileset, Pair<Pair<Integer, Integer>, TileData>... tiles) implements MapLayer {
+    @SafeVarargs
+    public BackgroundLayer {
+    }
+
     @Override
     public LayerType type() {
         return LayerType.BACKGROUND;
@@ -14,9 +18,9 @@ public record BackgroundLayer(int width, int height, int tileset, Pair<Pair<Inte
     @Override
     public RenderBuffer draw(RenderBuffer buffer) {
         if (buffer instanceof TileBuffer) {
-            for (Pair<Pair<Integer, Integer>, Integer> tile : tiles) {
+            for (Pair<Pair<Integer, Integer>, TileData> tile : tiles) {
                 Pair<Integer, Integer> location = tile.getLeft();
-                ((TileBuffer) buffer).add(location.getLeft(), location.getRight(), tile.getRight(), tileset);
+                ((TileBuffer) buffer).add(location.getLeft(), location.getRight(), tile.getRight());
             }
         }
 

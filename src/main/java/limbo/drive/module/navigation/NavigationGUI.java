@@ -11,8 +11,7 @@ import limbo.drive.api.graphics.core.gui.GuiBase;
 import limbo.drive.module.navigation.renderer.MapRenderer;
 import limbo.drive.module.navigation.renderer.RenderingContext;
 import limbo.drive.module.navigation.renderer.map.sprite.SpriteBuffer;
-import limbo.drive.module.navigation.renderer.map.tile.BackgroundLayer;
-import limbo.drive.module.navigation.renderer.map.tile.TileBuffer;
+import limbo.drive.module.navigation.renderer.map.tile.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.InputUtil;
@@ -45,11 +44,11 @@ public class NavigationGUI extends GuiBase {
 
     private static final int EDITOR_TILESET_SIZE_X = 135;
     private static final int EDITOR_TILESET_SIZE_Y = 439;
-    private static int EDITOR_TILESET_SELECTED = 0;
+    private static String EDITOR_TILESET_SELECTED = "debug";
     private static int EDITOR_TILE_SELECTED = 0;
     private static int EDITOR_TILE_PAGE = 0;
 
-    private static ArrayList<Pair<Pair<Integer, Integer>, Integer>> EDITOR_TILES = new ArrayList<>();
+    private static ArrayList<Pair<Pair<Integer, Integer>, TileData>> EDITOR_TILES = new ArrayList<>();
 
     public NavigationGUI() {
         super(
@@ -128,17 +127,15 @@ public class NavigationGUI extends GuiBase {
     private static void drawMapEditor(RenderingContext context) {
         ScreenDrawing.coloredRect(context.context, context.posX + MAP_OFFSET_X, context.posY + MAP_OFFSET_Y, EDITOR_TILESET_SIZE_X, EDITOR_TILESET_SIZE_Y, MAP_COLOUR);
 
-        int currentlyDrawing = EDITOR_TILE_PAGE * 66;
-        for (int column = 0; column < 12; column++) {
+        int currentlyDrawing = EDITOR_TILE_PAGE * 588;
+        for (int column = 0; column < 42; column++) {
             if (column == 0) {
-                for (int tileset = EDITOR_TILESET_SELECTED; tileset < EDITOR_TILESET_SELECTED + 4; tileset++) {
-                    ScreenDrawing.texturedRect(context.context, (context.posX + MAP_OFFSET_X + ((tileset + 1) * 32)) + (2 * tileset) + 2, context.posY + MAP_OFFSET_Y + 1, 32, 32, new Identifier("limbodrive:textures/gui/tiles/" + tileset + "/icon.png"), 0xFF_FFFFFF);
-                }
+                //ScreenDrawing.coloredRect(context.context, (context.posX + MAP_OFFSET_X + (8)) + (2) + 2, context.posY + MAP_OFFSET_Y + 1, 8, 8, 0xFF_696969);
             } else {
-                for (int row = 0; row < 6; row++) {
-                    ScreenDrawing.texturedRect(context.context, (context.posX + MAP_OFFSET_X + (row * 32)) + (2 * row), context.posY + MAP_OFFSET_Y + (column * 32) + (2 * column), 32, 32, new Identifier("limbodrive:textures/gui/tiles/" + EDITOR_TILESET_SELECTED + "/" + currentlyDrawing + ".png"), 0xFF_FFFFFF);
+                for (int row = 0; row < 13; row++) {
+                    ScreenDrawing.texturedRect(context.context, (context.posX + MAP_OFFSET_X +  + (row * 8)) + (2 * row), context.posY + MAP_OFFSET_Y + (column * 8) + (2 * column), 8, 8, new Identifier("limbodrive:textures/gui/tilesets/" + EDITOR_TILESET_SELECTED + "/" + currentlyDrawing + ".png"), 0xFF_FFFFFF);
                     if (EDITOR_TILE_SELECTED == currentlyDrawing) {
-                        ScreenDrawing.coloredRect(context.context, (context.posX + MAP_OFFSET_X + (row * 32)) + (2 * row), context.posY + MAP_OFFSET_Y + (column * 32) + (2 * column), 32, 32, 0x6F_FFFF00);
+                        ScreenDrawing.coloredRect(context.context, (context.posX + MAP_OFFSET_X + (row * 8)) + (2 * row), context.posY + MAP_OFFSET_Y + (column * 8) + (2 * column), 8, 8, 0x6F_FFFF00);
                     }
                     currentlyDrawing++;
                 }
@@ -198,20 +195,24 @@ public class NavigationGUI extends GuiBase {
                     }
 
                     if (tileX <= 5) {
-                        tileY = (int) (float) ((data.mouseY() - (tileY * 2.15))) / 32;
-                        tileX = (int) (float) ((data.mouseX() - 6) + (tileX * 2)) / 32;
+                        int minitileX = (int) (float) ((data.mouseX()) / 8) - 1;
+                        int minitileY = (int) (float) ((data.mouseY()) / 8) - 2;
 
-
-                        System.out.println("Tile: " + tileX + ", " + tileY);
-                        EDITOR_TILE_SELECTED = (((6 * (tileY - 1)) + tileX) - (tileX == 6 ? 1 : 0) + (EDITOR_TILE_PAGE * 66));
+                        System.out.println("Tile: " + minitileX + ", " + minitileY);
+                        EDITOR_TILE_SELECTED = (minitileX + (13 * minitileY) + (EDITOR_TILE_PAGE * 588));
                         System.out.println("Selected new tile " + EDITOR_TILE_SELECTED);
                         return;
                     }
 
                     System.out.println("Tile: " + tileX + ", " + tileY);
 
-                    tileY = (int) (float) ((data.mouseY() - (tileY * 2.15))) / 32;
-                    EDITOR_TILES.add(new Pair<>(new Pair<>(tileX - 7, tileY), EDITOR_TILE_SELECTED));
+                    tileY = (int) (float) ((data.mouseY() - (tileY * 2.15))) / 8;
+                    EDITOR_TILES.add(new Pair<>(new Pair<>(tileX - 7, tileY), new TileData(
+                        EDITOR_TILE_PAGE,
+                        EDITOR_TILESET_SELECTED,
+                        CollisionType.NONE,
+                        TileProperties.NONE
+                    )));
                 }
 
                 if (data.mouseButton() == 2) {
