@@ -1,4 +1,4 @@
-package limbo.drive.module.limbo;
+package limbo.drive.module.world;
 
 import limbo.drive.LimboDrive;
 import net.minecraft.block.Blocks;

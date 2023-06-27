@@ -21,6 +21,8 @@ public class SpriteBuffer extends RenderBuffer {
     private final ArrayList<SpriteBufferData.Sprite> contents = new ArrayList<>();
     static final HashMap<SpriteBufferData.Sprite, Pair<Integer, Integer>> previousLocations = new HashMap<>();
 
+    static TileBuffer TILES = null;
+
     private final int offsetX;
     private final int offsetY;
 
@@ -45,7 +47,7 @@ public class SpriteBuffer extends RenderBuffer {
 
         if (others.length > 0) {
             if (others[0] instanceof TileBuffer tiles) {
-                this.checkCollision(tiles);
+                TILES = tiles;
             }
         }
 
@@ -67,7 +69,12 @@ public class SpriteBuffer extends RenderBuffer {
             Optional<TileBuffer.Tile> tile = tiles.getTileAt(sprite.x() / 8, sprite.y() / 8);
             if (tile.isPresent() && tile.get().data().type() == CollisionType.SOLID) {
                 Pair<Integer, Integer> previous = previousLocations.get(sprite);
-                sprite.reposition(previous.getLeft(), previous.getRight());
+
+                if (previous != null) {
+                    System.out.println("Previous: " + previous.getLeft() + ", " + previous.getRight());
+                    System.out.println("Current: " + sprite.x() + ", " + sprite.y());
+                    sprite.reposition(previous.getLeft() / 8, previous.getRight() / 8);
+                }
             }
         }
     }

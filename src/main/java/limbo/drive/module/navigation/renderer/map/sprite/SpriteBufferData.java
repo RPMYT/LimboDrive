@@ -1,5 +1,6 @@
 package limbo.drive.module.navigation.renderer.map.sprite;
 
+import limbo.drive.module.navigation.renderer.map.tile.TileBuffer;
 import limbo.drive.util.NotReallyFinal;
 import net.minecraft.util.Pair;
 
@@ -80,9 +81,15 @@ public class SpriteBufferData {
         public void reposition(int deltaX, int deltaY) {
             int previousX = this.location.getLeft();
             int previousY = this.location.getRight();
-            SpriteBuffer.previousLocations.put(this, this.location);
-            this.location.setLeft(previousX + deltaX);
-            this.location.setRight(previousY + deltaY);
+
+            if (SpriteBuffer.TILES != null) {
+                if (SpriteBuffer.TILES.getTileAt((previousX + deltaX) / 8, (previousY + deltaY) / 8).isEmpty()
+                    && SpriteBuffer.TILES.getTileAt(((previousX + deltaX) / 8) + 1, ((previousY + deltaY) / 8) + 1).isEmpty()) {
+                    SpriteBuffer.previousLocations.put(this, new Pair<>(previousX, previousY));
+                    this.location.setLeft(previousX + deltaX);
+                    this.location.setRight(previousY + deltaY);
+                }
+            }
         }
 
         @Override

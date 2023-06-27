@@ -1,7 +1,7 @@
 package limbo.drive.module.mixin;
 
 
-import limbo.drive.module.limbo.Worldbleed;
+import limbo.drive.module.world.Worldbleed;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;

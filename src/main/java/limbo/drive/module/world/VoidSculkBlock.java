@@ -1,4 +1,4 @@
-package limbo.drive.module.limbo;
+package limbo.drive.module.world;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SculkBlock;

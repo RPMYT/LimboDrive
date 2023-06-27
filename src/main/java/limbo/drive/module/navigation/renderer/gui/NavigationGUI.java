@@ -108,7 +108,7 @@ public class NavigationGUI extends GuiBase {
 
         long handle = MinecraftClient.getInstance().getWindow().getHandle();
         if (!NavigationData.DEBUG_REQUESTED
-            && InputUtil.isKeyPressed(handle, InputUtil.GLFW_KEY_LEFT_ALT)
+            && InputUtil.isKeyPressed(handle, InputUtil.GLFW_KEY_LEFT_CONTROL)
             && InputUtil.isKeyPressed(handle, InputUtil.GLFW_KEY_GRAVE_ACCENT)
         ) {
             NavigationData.DEBUG_REQUESTED = true;
@@ -298,29 +298,38 @@ public class NavigationGUI extends GuiBase {
         if (NavigationData.DEBUG_ENABLED && NavigationPermissions.DEBUG_ENABLE) {
             char typed = (char) (data.character().intValue());
 
-
             switch (typed) {
-                case 1 -> NavigationData.CURRENT_CONTEXT.mode = RenderMode.MAP_VIEWER;
+                case '1' -> NavigationData.CURRENT_CONTEXT.mode = RenderMode.MAP_VIEWER;
 
-                case 2 -> {
+                case '2' -> {
                     if (NavigationPermissions.DEBUG_EDIT_MAPS) {
                         NavigationData.CURRENT_CONTEXT.mode = RenderMode.MAP_EDITOR;
                     }
                 }
 
-                case 3 -> {
+                case '3' -> {
                     if (NavigationPermissions.DEBUG_EDIT_BATTLES) {
                         NavigationData.CURRENT_CONTEXT.mode = RenderMode.BATTLE_EDITOR;
                     }
                 }
             }
+
+            NavigationData.DEBUG_ENABLED = false;
         }
 
-        NavigationData.DEBUG_ENABLED = false;
+        if (NavigationPermissions.DEBUG_ENABLE) {
+            if ((char) data.character().intValue() == '`') {
+                NavigationData.DEBUG_ENABLED = true;
+            }
+        }
     }
 
     private static void handleMovement() {
         if (NavigationData.SPRITES == null) {
+            return;
+        }
+
+        if (NavigationData.SPRITES.getPlayer() == null) {
             return;
         }
 
@@ -336,20 +345,22 @@ public class NavigationGUI extends GuiBase {
 
         if (InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), InputUtil.GLFW_KEY_A)) {
             NavigationData.SPRITES.getPlayer().reposition(-1, 0);
-            append = append + "_east";
+            append = append + "_west";
         } else if (InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), InputUtil.GLFW_KEY_D)) {
             NavigationData.SPRITES.getPlayer().reposition(1, 0);
-            append = append + "_west";
+            append = append + "_east";
         }
 
         String texture = NavigationData.SPRITES.getPlayer().texture().contains("_") ?
-                NavigationData.SPRITES.getPlayer().texture().substring(0, NavigationData.SPRITES.getPlayer().texture().indexOf("_") - 1) :
+                NavigationData.SPRITES.getPlayer().texture().substring(0, NavigationData.SPRITES.getPlayer().texture().indexOf("_")) :
                 NavigationData.SPRITES.getPlayer().texture();
 
         if (texture.length() == 0) {
             System.out.println("Zero-length texture?!");
         }
 
-        NavigationData.SPRITES.getPlayer().retexture(texture + append);
+        if (!append.equals("")) {
+            NavigationData.SPRITES.getPlayer().retexture(texture + append);
+        }
     }
 }

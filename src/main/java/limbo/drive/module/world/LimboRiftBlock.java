@@ -1,4 +1,4 @@
-package limbo.drive.module.limbo;
+package limbo.drive.module.world;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
