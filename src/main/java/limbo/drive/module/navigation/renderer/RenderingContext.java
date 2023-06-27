@@ -32,7 +32,16 @@ public class RenderingContext {
      * @param width The width of the player character
      * @param height The height of the player character
      */
-    public RenderingContext(DrawContext context, int posX, int posY, Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> location, Pair<Function<Pair<Integer, Integer>, Boolean>, Function<Pair<Integer, Integer>, Boolean>> visible, String room, String texture, int width, int height) {
+    public RenderingContext(DrawContext context,
+                            int posX,
+                            int posY,
+                            Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> location,
+                            Pair<Function<Pair<Integer, Integer>, Boolean>, Function<Pair<Integer, Integer>, Boolean>> visible,
+                            String room,
+                            String texture,
+                            int width,
+                            int height
+    ) {
         this.context = context;
         this.posX = posX;
         this.posY = posY;
@@ -67,30 +76,13 @@ public class RenderingContext {
             null,
             0,
             0,
-            new Pair<>(new Pair<>(compound.getInt("PlayerTileX"), compound.getInt("PlayerTileY")), new Pair<>(compound.getInt("PlayerSpriteX"), compound.getInt("PlayerSpriteY"))),
+            new Pair<>(new Pair<>(compound.getInt("PlayerTileX"), compound.getInt("PlayerTileY")),
+                    new Pair<>(compound.getInt("PlayerSpriteX"), compound.getInt("PlayerSpriteY"))),
             new Pair<>(tiles -> true, sprites -> true),
             compound.getString("CurrentRoom"),
             compound.getString("PlayerTexture"),
             compound.getInt("PlayerWidth"),
             compound.getInt("PlayerHeight")
         );
-    }
-
-    public void updateTileLocation(int deltaX, int deltaY) {
-        Pair<Integer, Integer> tile = this.location.getLeft();
-        int previousX = tile.getLeft();
-        int previousY = tile.getRight();
-        tile.setLeft(previousX + deltaX);
-        tile.setRight(previousY + deltaY);
-        this.location.setLeft(tile);
-    }
-
-    public void updateSpriteLocation(int deltaX, int deltaY) {
-        Pair<Integer, Integer> sprite = this.location.getRight();
-        int previousX = sprite.getLeft();
-        int previousY = sprite.getRight();
-        sprite.setLeft(previousX + deltaX);
-        sprite.setRight(previousY + deltaY);
-        this.location.setRight(sprite);
     }
 }

@@ -11,7 +11,9 @@ import limbo.drive.api.graphics.core.gui.GuiBase;
 import limbo.drive.module.navigation.renderer.MapRenderer;
 import limbo.drive.module.navigation.renderer.RenderingContext;
 import limbo.drive.module.navigation.renderer.map.sprite.SpriteBuffer;
+import limbo.drive.module.navigation.renderer.map.sprite.SpriteBufferData;
 import limbo.drive.module.navigation.renderer.map.tile.*;
+import limbo.drive.util.NotReallyFinal;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.InputUtil;
@@ -23,6 +25,10 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class NavigationGUI extends GuiBase {
     private enum ViewMode {
@@ -38,17 +44,21 @@ public class NavigationGUI extends GuiBase {
 
     private static final int MAP_OFFSET_X = 4;
     private static final int MAP_OFFSET_Y = 2;
-    private static final int MAP_SIZE_X = 812;
-    private static final int MAP_SIZE_Y = 446;
+    private static final int MAP_SIZE_X = 748;
+    private static final int MAP_SIZE_Y = 394;
     private static final int MAP_COLOUR = 0xFF_2A2A2A;
 
-    private static final int EDITOR_TILESET_SIZE_X = 135;
-    private static final int EDITOR_TILESET_SIZE_Y = 439;
+    private static final int EDITOR_TILESET_SIZE_X = 130;
+    private static final int EDITOR_TILESET_SIZE_Y = 394;
     private static String EDITOR_TILESET_SELECTED = "debug";
     private static int EDITOR_TILE_SELECTED = 0;
     private static int EDITOR_TILE_PAGE = 0;
 
-    private static ArrayList<Pair<Pair<Integer, Integer>, TileData>> EDITOR_TILES = new ArrayList<>();
+    private static SpriteBuffer SPRITES = null;
+
+    private static final HashMap<Pair<Integer, Integer>, ArrayList<Pair<Integer, Integer>>> DRAW_LOCATIONS = new HashMap<>();
+
+    private static final ArrayList<Pair<Pair<Integer, Integer>, TileData>> EDITOR_TILES = new ArrayList<>();
 
     public NavigationGUI() {
         super(
@@ -59,8 +69,8 @@ public class NavigationGUI extends GuiBase {
                     "limbodrive",
                     "navigator"
                 ),
-                820,
-                450,
+                752,
+                400,
                 0xFF_1F2041,
                 null,
                 null,
@@ -81,6 +91,8 @@ public class NavigationGUI extends GuiBase {
                 (context, stage, display, posX, posY, mouseX, mouseY) -> draw(context, posX, posY)
             )
         );
+
+        SPRITES = null;
     }
 
     public static void contextualize(RenderingContext context) {
@@ -106,10 +118,6 @@ public class NavigationGUI extends GuiBase {
             case PLAYER_MAP -> drawMapViewer(current);
         }
 
-        MapRenderer.render(current, SpriteBuffer.create(0, 0)
-            .characterAnchored(current.location.getRight().getLeft(), current.location.getRight().getRight(), current.width, current.height, 0, current.texture)
-        );
-
         handleMovement();
     }
 
@@ -124,25 +132,56 @@ public class NavigationGUI extends GuiBase {
         }
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     private static void drawMapEditor(RenderingContext context) {
-        ScreenDrawing.coloredRect(context.context, context.posX + MAP_OFFSET_X, context.posY + MAP_OFFSET_Y, EDITOR_TILESET_SIZE_X, EDITOR_TILESET_SIZE_Y, MAP_COLOUR);
+        ScreenDrawing.coloredRect(context.context,
+                context.posX + MAP_OFFSET_X,
+                context.posY + MAP_OFFSET_Y,
+                EDITOR_TILESET_SIZE_X,
+                EDITOR_TILESET_SIZE_Y,
+                MAP_COLOUR);
 
-        int currentlyDrawing = EDITOR_TILE_PAGE * 588;
-        for (int column = 0; column < 42; column++) {
-            if (column == 0) {
-                //ScreenDrawing.coloredRect(context.context, (context.posX + MAP_OFFSET_X + (8)) + (2) + 2, context.posY + MAP_OFFSET_Y + 1, 8, 8, 0xFF_696969);
-            } else {
-                for (int row = 0; row < 13; row++) {
-                    ScreenDrawing.texturedRect(context.context, (context.posX + MAP_OFFSET_X +  + (row * 8)) + (2 * row), context.posY + MAP_OFFSET_Y + (column * 8) + (2 * column), 8, 8, new Identifier("limbodrive:textures/gui/tilesets/" + EDITOR_TILESET_SELECTED + "/" + currentlyDrawing + ".png"), 0xFF_FFFFFF);
-                    if (EDITOR_TILE_SELECTED == currentlyDrawing) {
-                        ScreenDrawing.coloredRect(context.context, (context.posX + MAP_OFFSET_X + (row * 8)) + (2 * row), context.posY + MAP_OFFSET_Y + (column * 8) + (2 * column), 8, 8, 0x6F_FFFF00);
+        DRAW_LOCATIONS.clear();
+        int currentlyDrawing = EDITOR_TILE_PAGE * 507;
+        for (int column = 1; column < 39; column++) {
+            for (int row = 0; row < 13; row++) {
+                ScreenDrawing.texturedRect(context.context,
+                        (context.posX + MAP_OFFSET_X + 1 + (row * 8)) + (2 * row),
+                        context.posY + MAP_OFFSET_Y + 4 + (column * 8) + (2 * column),
+                        8,
+                        8,
+                        new Identifier("limbodrive:textures/gui/tilesets/" + EDITOR_TILESET_SELECTED + "/" + currentlyDrawing + ".png"),
+                        0xFF_FFFFFF);
+
+                ArrayList<Pair<Integer, Integer>> LOCATIONS = new ArrayList<>();
+                int drawStartX = MAP_OFFSET_X + 1 + (row * 8) + (2 * row);
+                int drawStartY = MAP_OFFSET_Y + 4 + (column * 8) + (2 * column);
+                for (int positionX = drawStartX; positionX < drawStartX + 8; positionX++) {
+                    for (int positionY = drawStartY; positionY < drawStartY + 8; positionY++) {
+                        LOCATIONS.add(new Pair<>(positionX, positionY));
                     }
-                    currentlyDrawing++;
                 }
+                DRAW_LOCATIONS.put(new Pair<>(row, column), LOCATIONS);
+
+                if (EDITOR_TILE_SELECTED == currentlyDrawing) {
+                    ScreenDrawing.coloredRect(context.context,
+                            (context.posX + MAP_OFFSET_X + 1 + (row * 8)) + (2 * row),
+                            context.posY + MAP_OFFSET_Y + 4 + (column * 8) + (2 * column),
+                            8,
+                            8,
+                            0x6F_FFFF00);
+                }
+                currentlyDrawing++;
             }
         }
 
-        ScreenDrawing.drawStringWithShadow(context.context, "<======== Current Page: " + EDITOR_TILE_PAGE + " ========>", HorizontalAlignment.CENTER, context.posX + MAP_OFFSET_X + 9, context.posY + MAP_OFFSET_Y + 426, 190,  0xFF_FFFFFF);
+        ScreenDrawing.drawStringWithShadow(context.context,
+                "<== Current Page: " + EDITOR_TILE_PAGE + " ==>",
+                HorizontalAlignment.CENTER,
+                context.posX + MAP_OFFSET_X + 14,
+                context.posY + MAP_OFFSET_Y + 3,
+                102,
+                0xFF_FFFFFF);
 
         RenderingContext ctx = new RenderingContext(
             context.context,
@@ -157,60 +196,99 @@ public class NavigationGUI extends GuiBase {
         );
 
         //noinspection unchecked
-        MapRenderer.render(ctx, new BackgroundLayer(
-            20,
-            12,
-            EDITOR_TILESET_SELECTED,
-            EDITOR_TILES.toArray(new Pair[0])
-        ).draw(TileBuffer.create(20, 12)));
+        TileBuffer tiles = (TileBuffer) new BackgroundLayer(
+                20,
+                12,
+                EDITOR_TILESET_SELECTED,
+                EDITOR_TILES.toArray(new Pair[0])
+        ).draw(TileBuffer.create(20, 12));
+
+        if (SPRITES == null) {
+            SPRITES = SpriteBuffer.create(-131, -1)
+                    .add(new SpriteBufferData.AnchoredCharacterSprite(
+                            ctx.location.getRight(),
+                            ctx.width,
+                            ctx.height,
+                            0,
+                            new NotReallyFinal<>(ctx.texture)
+                        )
+                    );
+        }
+
+        MapRenderer renderer = new MapRenderer(tiles, SPRITES);
+        renderer.render(ctx);
     }
 
     private static void drawMapViewer(RenderingContext context) {
-        ScreenDrawing.coloredRect(context.context, context.posX + MAP_OFFSET_X, context.posY + MAP_OFFSET_Y, MAP_SIZE_X, MAP_SIZE_Y, MAP_COLOUR);
+        ScreenDrawing.coloredRect(context.context,
+                context.posX + MAP_OFFSET_X,
+                context.posY + MAP_OFFSET_Y,
+                MAP_SIZE_X,
+                MAP_SIZE_Y,
+                MAP_COLOUR);
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
+    @SuppressWarnings("DataFlowIssue")
     private static void handleMouseClicks(PB3K.InputData data) {
         switch (MODE) {
             case EDITOR_MAP -> {
                 if (data.mouseButton() == 0) {
                     int tileX = (int) (float) (data.mouseX() - 4) / 32;
-                    int tileY = (int) (float) (data.mouseY()) / 32;
+                    int tileY = (int) (float) (data.mouseY() - 4) / 32;
 
-                    System.out.println("Location: " + (data.mouseX() - 4) + ", " + (data.mouseY() - 4));
+                    if (tileX <= 5) {
+                        AtomicInteger tile = new AtomicInteger(0);
+                        AtomicBoolean found = new AtomicBoolean(false);
+                        DRAW_LOCATIONS.forEach((index, locations) -> {
+                            if (!found.get()) {
+                                for (Pair<Integer, Integer> location : locations) {
+                                    if (found.get()) {
+                                        break;
+                                    }
 
-                    if (tileY == 13) {
-                        if (tileX == 0 || tileX == 1) {
-                            System.out.println("Decrementing page");
-                            EDITOR_TILE_PAGE--;
-                            if (EDITOR_TILE_PAGE < 0) {
-                                EDITOR_TILE_PAGE = 0;
+                                    if (Objects.equals(location.getLeft(), data.mouseX()) && Objects.equals(location.getRight(), data.mouseY())) {
+                                        found.set(true);
+                                        tile.set(index.getLeft() + ((index.getRight() - 1) * 13));
+                                        System.out.println("Found tile, ID " + tile.get());
+                                        break;
+                                    }  //System.out.println("Scanning next location " + location.getLeft() + ", " + location.getRight() + " tile index " + index.getLeft() + ", " + index.getRight() + " mouse location " + (data.mouseX()) + ", " + (data.mouseY()));
+
+                                }
+                            }
+                        });
+                        System.out.println("Click location, found: " + found.get());
+
+                        if (found.get()) {
+                            EDITOR_TILE_SELECTED = tile.get();
+                            System.out.println("Selected new tile " + EDITOR_TILE_SELECTED);
+                            return;
+                        } else {
+                            if (tileY == 0) {
+                                if (tileX == 0) {
+                                    System.out.println("Decrementing page");
+                                    EDITOR_TILE_PAGE--;
+                                    if (EDITOR_TILE_PAGE < 0) {
+                                        EDITOR_TILE_PAGE = 0;
+                                    }
+                                }
+
+                                if (tileX == 3) {
+                                    EDITOR_TILE_PAGE++;
+                                }
                             }
                         }
 
-                        if (tileX == 5 || tileX == 6) {
-                            EDITOR_TILE_PAGE++;
-                        }
                         return;
                     }
+                    System.out.println("Tile X: " + tileX);
 
-                    if (tileX <= 5) {
-                        int minitileX = (int) (float) ((data.mouseX()) / 8) - 1;
-                        int minitileY = (int) (float) ((data.mouseY()) / 8) - 2;
+                    int minitileX = ((int) (float) (data.mouseX() - 4) / 8);
+                    int minitileY = (int) (float) (data.mouseY() - 4) / 8;
 
-                        System.out.println("Tile: " + minitileX + ", " + minitileY);
-                        EDITOR_TILE_SELECTED = (minitileX + (13 * minitileY) + (EDITOR_TILE_PAGE * 588));
-                        System.out.println("Selected new tile " + EDITOR_TILE_SELECTED);
-                        return;
-                    }
-
-                    System.out.println("Tile: " + tileX + ", " + tileY);
-
-                    tileY = (int) (float) ((data.mouseY() - (tileY * 2.15))) / 8;
-                    EDITOR_TILES.add(new Pair<>(new Pair<>(tileX - 7, tileY), new TileData(
-                        EDITOR_TILE_PAGE,
+                    EDITOR_TILES.add(new Pair<>(new Pair<>((minitileX - 25), minitileY - 1), new TileData(
+                        EDITOR_TILE_SELECTED * (EDITOR_TILE_PAGE + 1),
                         EDITOR_TILESET_SELECTED,
-                        CollisionType.NONE,
+                        CollisionType.SOLID,
                         TileProperties.NONE
                     )));
                 }
@@ -250,31 +328,33 @@ public class NavigationGUI extends GuiBase {
         boolean north = false;
         boolean east = false;
         boolean south = false;
-        boolean west= false;
+        boolean west = false;
 
         if (InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), InputUtil.GLFW_KEY_W)) {
-            CURRENT_CONTEXT.updateSpriteLocation(0, -1);
+            SPRITES.getPlayer().reposition(0, -1);
             north = true;
         }
 
         if (InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), InputUtil.GLFW_KEY_A)) {
-            CURRENT_CONTEXT.updateSpriteLocation(-1, 0);
+            SPRITES.getPlayer().reposition(-1, 0);
             west = true;
         }
 
         if (InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), InputUtil.GLFW_KEY_S)) {
-            CURRENT_CONTEXT.updateSpriteLocation(0, 1);
+            SPRITES.getPlayer().reposition(0, 1);
             south = true;
             north = false;
         }
 
         if (InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), InputUtil.GLFW_KEY_D)) {
-            CURRENT_CONTEXT.updateSpriteLocation(1, 0);
+            SPRITES.getPlayer().reposition(1, 0);
             east = true;
             west = false;
         }
 
-        String texture = CURRENT_CONTEXT.texture.contains("_") ? CURRENT_CONTEXT.texture.substring(0, CURRENT_CONTEXT.texture.indexOf("_")) : CURRENT_CONTEXT.texture;
+        String texture = SPRITES.getPlayer().texture().contains("_") ?
+                SPRITES.getPlayer().texture().substring(0, SPRITES.getPlayer().texture().indexOf("_")) :
+                SPRITES.getPlayer().texture();
         if (texture.length() == 0) {
             System.out.println("Zero-length texture?!");
         }
@@ -294,6 +374,7 @@ public class NavigationGUI extends GuiBase {
         if (west) {
             texture = texture + "_west";
         }
-        CURRENT_CONTEXT.texture = texture;
+
+        SPRITES.getPlayer().retexture(texture);
     }
 }

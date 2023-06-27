@@ -7,6 +7,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class TileBuffer extends RenderBuffer {
     public record Tile(int x, int y, TileData data) {}
@@ -16,8 +17,8 @@ public class TileBuffer extends RenderBuffer {
     private ArrayList<Tile> contents = new ArrayList<>();
 
     private TileBuffer(int width, int height) {
-        this.width = width;
-        this.height = height;
+        this.width = width * 16;
+        this.height = height * 16;
     }
 
     public static TileBuffer create(int width, int height) {
@@ -26,17 +27,27 @@ public class TileBuffer extends RenderBuffer {
 
     public TileBuffer add(int x, int y, TileData data) {
         contents.add(new Tile(
-            x,
-            y,
+            Math.max(0, x),
+            Math.max(0, y),
             data
         ));
 
         return this;
     }
 
+    public Optional<Tile> getTileAt(int x, int y) {
+        for (Tile content : this.contents) {
+            if (content.x == x && content.y == y) {
+                return Optional.of(content);
+            }
+        }
+
+        return Optional.empty();
+    }
+
     @SuppressWarnings("SuspiciousNameCombination")
-    protected void flush(RenderingContext context) {
-        int startX = 12 + context.posX;
+    protected void flush(RenderingContext context, RenderBuffer... others) {
+        int startX = context.posX - 12;
         int startY = 6 + context.posY;
 
         for (Tile tile : this.contents) {
