@@ -1,8 +1,8 @@
 package limbo.drive.module.navigation.renderer.map.sprite;
 
 import io.github.cottonmc.cotton.gui.client.ScreenDrawing;
-import limbo.drive.module.navigation.renderer.RenderBuffer;
-import limbo.drive.module.navigation.renderer.RenderingContext;
+import limbo.drive.module.navigation.renderer.gui.RenderBuffer;
+import limbo.drive.module.navigation.renderer.gui.RenderingContext;
 import limbo.drive.module.navigation.renderer.map.tile.CollisionType;
 import limbo.drive.module.navigation.renderer.map.tile.TileBuffer;
 import net.minecraft.util.Identifier;
@@ -40,8 +40,8 @@ public class SpriteBuffer extends RenderBuffer {
 
     @Override
     protected void flush(RenderingContext context, RenderBuffer... others) {
-        int startX = 116 + context.posX + offsetX;
-        int startY = 8 + context.posY + offsetY;
+        int startX = 116 + context.renderPositionX + offsetX;
+        int startY = 8 + context.renderPositionY + offsetY;
 
         if (others.length > 0) {
             if (others[0] instanceof TileBuffer tiles) {
@@ -50,37 +50,14 @@ public class SpriteBuffer extends RenderBuffer {
         }
 
         for (SpriteBufferData.Sprite sprite : this.contents) {
-            switch (sprite.type()) {
-                case OBJECT -> {
-                    SpriteBufferData.ObjectSprite object = (SpriteBufferData.ObjectSprite) sprite;
-                    if (context.visible.getLeft().apply(object.location())) {
-                        ScreenDrawing.texturedRect(context.context,
-                                (object.x()) + startX,
-                                (object.y()) + startY,
-                                object.width(),
-                                object.height(),
-                                new Identifier("limbodrive:textures/gui/sprites/objects/" + object.texture() + ".png"),
-                                0xFF_FFFFFF);
-                    }
-                }
-
-                case CHARACTER -> {
-                    Pair<Integer, Integer> position = new Pair<>(sprite.x(), sprite.y());
-                    if (context.visible.getRight().apply(position)) {
-                        String texture = ((SpriteBufferData.Character) sprite).texture();
-                        if (!texture.contains("_")) {
-                            texture = texture + "_south";
-                        }
-
-                        ScreenDrawing.texturedRect(context.context,
-                                position.getLeft() + startX,
-                                position.getRight() + startY,
-                                ((SpriteBufferData.Character) sprite).width(),
-                                ((SpriteBufferData.Character) sprite).height(),
-                                new Identifier("limbodrive:textures/gui/sprites/characters/" + texture + ".png"),
-                                0xFF_FFFFFF);
-                    }
-                }
+            if (context.isSpriteVisible(sprite.x(), sprite.y())) {
+                ScreenDrawing.texturedRect(context.context,
+                    sprite.x() + startX,
+                    sprite.y() + startY,
+                    sprite.width(),
+                    sprite.height(),
+                    new Identifier("limbodrive:textures/gui/sprites/" + sprite.type().name().toLowerCase() + "/" + sprite.texture() + ".png"),
+                    0xFF_FFFFFF);
             }
         }
     }

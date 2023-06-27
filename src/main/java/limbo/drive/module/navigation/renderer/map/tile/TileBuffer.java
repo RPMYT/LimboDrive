@@ -1,10 +1,9 @@
 package limbo.drive.module.navigation.renderer.map.tile;
 
 import io.github.cottonmc.cotton.gui.client.ScreenDrawing;
-import limbo.drive.module.navigation.renderer.RenderBuffer;
-import limbo.drive.module.navigation.renderer.RenderingContext;
+import limbo.drive.module.navigation.renderer.gui.RenderBuffer;
+import limbo.drive.module.navigation.renderer.gui.RenderingContext;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -14,7 +13,7 @@ public class TileBuffer extends RenderBuffer {
 
     private final int width;
     private final int height;
-    private ArrayList<Tile> contents = new ArrayList<>();
+    private final ArrayList<Tile> contents = new ArrayList<>();
 
     private TileBuffer(int width, int height) {
         this.width = width * 16;
@@ -45,13 +44,12 @@ public class TileBuffer extends RenderBuffer {
         return Optional.empty();
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
     protected void flush(RenderingContext context, RenderBuffer... others) {
-        int startX = context.posX - 12;
-        int startY = 6 + context.posY;
+        int startX = context.renderPositionX - 12;
+        int startY = 6 + context.renderPositionY;
 
         for (Tile tile : this.contents) {
-            if (context.visible.getLeft().apply(new Pair<>(tile.x, tile.y))) {
+            if (context.isTileVisible(tile.x, tile.y)) {
                 if (tile.x <= this.width && tile.y <= this.height) {
                     ScreenDrawing.texturedRect(context.context,
                         (tile.x * 8) + startX,

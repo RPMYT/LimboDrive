@@ -1,21 +1,13 @@
 package limbo.drive.module.navigation.renderer.map.tile;
 
-import limbo.drive.module.navigation.renderer.RenderBuffer;
-import limbo.drive.module.navigation.renderer.map.layer.LayerType;
-import limbo.drive.module.navigation.renderer.map.layer.MapLayer;
+import limbo.drive.module.navigation.renderer.gui.RenderBuffer;
 import net.minecraft.util.Pair;
 
-public record BackgroundLayer(int width, int height, String tileset, Pair<Pair<Integer, Integer>, TileData>... tiles) implements MapLayer {
+public record BackgroundLayer(int width, int height, String tileset, Pair<Pair<Integer, Integer>, TileData>... tiles)  {
     @SafeVarargs
     public BackgroundLayer {
     }
 
-    @Override
-    public LayerType type() {
-        return LayerType.BACKGROUND;
-    }
-
-    @Override
     public RenderBuffer draw(RenderBuffer buffer) {
         if (buffer instanceof TileBuffer) {
             for (Pair<Pair<Integer, Integer>, TileData> tile : tiles) {

@@ -1,8 +1,9 @@
 package limbo.drive.module.navigation;
 
 import limbo.drive.api.graphics.core.PB3K;
-import limbo.drive.module.navigation.NavigationGUI;
-import limbo.drive.module.navigation.renderer.RenderingContext;
+import limbo.drive.module.navigation.renderer.gui.NavigationGUI;
+import limbo.drive.module.navigation.renderer.gui.RenderMode;
+import limbo.drive.module.navigation.renderer.gui.RenderingContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -11,14 +12,12 @@ import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Pair;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class LimboNavigatorItem extends Item implements NamedScreenHandlerFactory {
-    // TODO store rendering context in the stack
     public LimboNavigatorItem() {
         super(new Item.Settings().maxCount(1).rarity(Rarity.RARE));
     }
@@ -29,6 +28,8 @@ public class LimboNavigatorItem extends Item implements NamedScreenHandlerFactor
 
         RenderingContext context;
         ItemStack stack = user.getStackInHand(hand);
+
+        //noinspection DataFlowIssue
         if (stack.hasNbt() && stack.getNbt().contains("NavigationContext")) {
             context = RenderingContext.deserialize(stack.getNbt().getCompound("NavigationContext"));
         } else {
@@ -36,12 +37,13 @@ public class LimboNavigatorItem extends Item implements NamedScreenHandlerFactor
                 null,
                 0,
                 0,
-                new Pair<>(new Pair<>(0, 0), new Pair<>(0, 0)),
-                new Pair<>(tiles -> true, sprites -> true),
                 "TestRoom",
                 "test_south",
                 12,
-                12
+                12,
+                0,
+                0,
+                RenderMode.MAP_VIEWER
             );
         }
 

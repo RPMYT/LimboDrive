@@ -1,9 +1,7 @@
-package limbo.drive.module.navigation.renderer;
+package limbo.drive.module.navigation.renderer.gui;
 
-import com.google.common.collect.ImmutableList;
 import limbo.drive.module.navigation.renderer.map.sprite.SpriteBuffer;
 import limbo.drive.module.navigation.renderer.map.tile.TileBuffer;
-import net.minecraft.util.Pair;
 
 public class MapRenderer {
     private final RenderBuffer tiles;

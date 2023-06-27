@@ -16,7 +16,12 @@ public class SpriteBufferData {
         int x();
         int y();
 
+        int width();
+        int height();
+
         void reposition(int deltaX, int deltaY);
+
+        String texture();
     }
 
     public interface Object extends Sprite {
@@ -39,9 +44,6 @@ public class SpriteBufferData {
             CHASING,
             BOTH
         }
-        int width();
-        int height();
-        String texture();
 
         void retexture(String updated);
     }
